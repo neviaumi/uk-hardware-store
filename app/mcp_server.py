@@ -76,6 +76,49 @@ Wait for the user to describe their project before offering specific product lin
     ]
 
 
+class ProviderInfo(BaseModel):
+    name: str = Field(description="The provider name/identifier.")
+    description: str = Field(
+        description="A description of the products this provider sells."
+    )
+
+
+@mcp.tool(
+    "get_providers",
+    title="Get Providers",
+    description="Get a list of available hardware store providers and descriptions of the products they sell. Use this to determine which provider to query based on what the user is looking for.",
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": True,
+        "openWorldHint": False,
+    },
+)
+async def get_providers() -> list[ProviderInfo]:
+    return [
+        ProviderInfo(
+            name=diy_dot_com_crawler.SOURCE_IDENTIFIER,
+            description=diy_dot_com_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
+            name=homebase_crawler.SOURCE_IDENTIFIER,
+            description=homebase_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
+            name=screwfix_crawler.SOURCE_IDENTIFIER,
+            description=screwfix_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
+            name=toolstation_crawler.SOURCE_IDENTIFIER,
+            description=toolstation_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
+            name=wickes_crawler.SOURCE_IDENTIFIER,
+            description=wickes_crawler.SOURCE_DESCRIPTION,
+        ),
+    ]
+
+
 class ProductDetailRequest(BaseModel):
     product_url: str = Field(
         description="The absolute product URL (e.g., `https://www.diy.com/products/hammer-12345`)."
@@ -104,7 +147,7 @@ ProductDetailResponse = Union[
 )
 async def get_product_detail(
     provider: Provider = Field(
-        description="The UK hardware retailer to fetch details from (B&Q, Homebase, Screwfix, Toolstation, or Wickes)."
+        description="The UK hardware retailer to fetch details from. See get_providers for available options."
     ),
     request: ProductDetailRequest = Field(
         description="The request containing the product URL."
@@ -150,7 +193,7 @@ ProductSearchResponse = list[
 @mcp.tool(
     "search_products",
     title="Search Products",
-    description="Search for products on a specific UK hardware retailer's catalog.",
+    description="Search for products on a specific UK hardware retailer's catalog. If you aren't sure which provider to use, check the get_providers tool.",
     annotations={
         "readOnlyHint": True,
         "destructiveHint": False,
@@ -160,7 +203,7 @@ ProductSearchResponse = list[
 )
 async def search_products(
     provider: Provider = Field(
-        description="The UK hardware retailer to search on (B&Q, Homebase, Screwfix, Toolstation, or Wickes)."
+        description="The UK hardware retailer to search on. See get_providers for options."
     ),
     request: ProductsSearchRequest = Field(
         description="The search request containing the keyword."
