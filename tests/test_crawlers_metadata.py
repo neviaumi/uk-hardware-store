@@ -3,7 +3,6 @@ import pytest
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
 import app.crawlers.homebase_crawler as homebase_crawler
 import app.crawlers.screwfix_crawler as screwfix_crawler
-import app.crawlers.the_range_crawler as the_range_crawler
 import app.crawlers.toolstation_crawler as toolstation_crawler
 import app.crawlers.wickes_crawler as wickes_crawler
 
@@ -11,7 +10,6 @@ CRAWLERS = [
     diy_dot_com_crawler,
     homebase_crawler,
     screwfix_crawler,
-    the_range_crawler,
     toolstation_crawler,
     wickes_crawler,
 ]
