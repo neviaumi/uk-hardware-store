@@ -9,6 +9,7 @@ import app.crawlers.http_client as http_client
 from app.crawlers.utils import clean_html, clean_text, remove_spaces
 
 SOURCE_IDENTIFIER = "Toolstation"
+SOURCE_DESCRIPTION = "Toolstation offers tools, electrical, plumbing, and building supplies for both trade and DIY."
 
 
 class ProductDetailResponse(BaseModel):

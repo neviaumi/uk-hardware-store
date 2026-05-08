@@ -9,6 +9,9 @@ import app.crawlers.http_client as http_client
 from app.crawlers.utils import clean_html, clean_text
 
 SOURCE_IDENTIFIER = "Homebase"
+SOURCE_DESCRIPTION = (
+    "Homebase offers home enhancement, garden supplies, decorating, and DIY products."
+)
 
 
 class ProductDetailResponse(BaseModel):

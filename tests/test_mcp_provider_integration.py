@@ -24,6 +24,11 @@ def mcp_server_config():
 @pytest.fixture
 async def mcp_client_session(mcp_server_config):
     env = get_default_environment()
+    import os
+
+    if "BROWSERLESS_API_KEY" in os.environ:
+        env["BROWSERLESS_API_KEY"] = os.environ["BROWSERLESS_API_KEY"]
+
     server_params = StdioServerParameters(
         command=mcp_server_config["test"]["command"],
         args=mcp_server_config["test"]["args"],
@@ -37,7 +42,10 @@ async def mcp_client_session(mcp_server_config):
             yield session
 
 
-@pytest.mark.parametrize("provider", list(Provider))
+PROVIDERS_TO_TEST = list(Provider)
+
+
+@pytest.mark.parametrize("provider", PROVIDERS_TO_TEST)
 @skip_if_ci
 async def test_provider(mcp_client_session, provider):
     """Test the unified search_products tool across all providers."""
@@ -79,11 +87,26 @@ async def test_unsupported_provider(mcp_client_session):
         "get_product_detail",
         {
             "request": {
-                "provider": "unsupported",
                 "product_url": "https://www.diy.com/products/hammer",
-            }
+            },
+            "provider": "unsupported",
         },
     )
     assert tool_result.isError is True, (
         "Tool call for unsupported provider should error"
     )
+
+
+async def test_get_providers(mcp_client_session):
+    """Test the get_providers tool returns name and description for all providers."""
+    tool_result = await mcp_client_session.call_tool("get_providers", {})
+    assert tool_result.isError is False, "Tool call for get_providers should not error"
+
+    response = tool_result.structuredContent.get("result", [])
+    assert len(response) == len(Provider), "get_providers should return all providers"
+
+    for provider_info in response:
+        assert "name" in provider_info
+        assert "description" in provider_info
+        assert len(provider_info["name"]) > 0
+        assert len(provider_info["description"]) > 0
