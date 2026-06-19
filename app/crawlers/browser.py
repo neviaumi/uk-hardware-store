@@ -30,7 +30,7 @@ def connect_browserless(playwright: PlaywrightContextManager):
 
 
 def connect_local_firefox(playwright: PlaywrightContextManager):
-    return playwright.firefox.launch()
+    return playwright.firefox.launch(headless=False)
 
 
 @asynccontextmanager
