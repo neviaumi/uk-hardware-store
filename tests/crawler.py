@@ -1,1 +1,2 @@
 TEST_SEARCH_KEYWORD = "M6 Hex Bolt"
+TEST_SEARCH_CAR_PART = "Oil filter"
