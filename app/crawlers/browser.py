@@ -1,7 +1,7 @@
 import urllib.parse
 from contextlib import asynccontextmanager
 
-from playwright.async_api import PlaywrightContextManager, async_playwright
+from playwright.async_api import Playwright, async_playwright
 
 from app.config import (
     BROWSER_PROVIDER,
@@ -11,13 +11,13 @@ from app.config import (
 )
 
 
-def connect_lightpanda(playwright: PlaywrightContextManager):
+def connect_lightpanda(playwright: Playwright):
     return playwright.chromium.connect_over_cdp(
         endpoint_url=LIGHTPANDA_ENDPOINT, timeout=120000
     )
 
 
-def connect_browserless(playwright: PlaywrightContextManager):
+def connect_browserless(playwright: Playwright):
     if BROWSERLESS_API_KEY is None:
         raise ValueError("BROWSERLESS_API_KEY is not set")
     params = {
@@ -29,7 +29,7 @@ def connect_browserless(playwright: PlaywrightContextManager):
     return playwright.chromium.connect_over_cdp(endpoint_url=endpoint, timeout=120000)
 
 
-def connect_local_firefox(playwright: PlaywrightContextManager):
+def connect_local_firefox(playwright: Playwright):
     return playwright.firefox.launch(headless=False)
 
 

@@ -2,7 +2,7 @@
 import json
 import urllib.parse
 from enum import Enum
-from typing import Literal
+from typing import Final, Literal
 
 from parsel import Selector
 from playwright.async_api import Page
@@ -12,7 +12,7 @@ import app.config as config
 from app.crawlers.browser import create_browser
 from app.logger import get_logger_for_crawler
 
-SOURCE_IDENTIFIER = "Halfords"
+SOURCE_IDENTIFIER: Final = "Halfords"
 SOURCE_DESCRIPTION = (
     "Halfords is a retailer of car parts, car accessories, and bicycles."
 )
@@ -28,7 +28,7 @@ class SearchBy(str, Enum):
 
 
 class ProductSearchResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Halfords"] = Field(
         description="The source of the search result.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(
@@ -46,7 +46,7 @@ class ProductSearchResponse(BaseModel):
 
 
 class ProductDetailResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Halfords"] = Field(
         description="The source of the product.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(description="The full commercial name of the product.")
@@ -255,7 +255,11 @@ async def _parse_products(page: Page) -> list[ProductSearchResponse]:
             ProductSearchResponse(
                 title=title,
                 price=price,
-                url=url if url.startswith("https") else f"{config.HALFORDS_URL}{url}",
+                url=url
+                if (url and url.startswith("https"))
+                else f"{config.HALFORDS_URL}{url}"
+                if url
+                else "",
                 promo=promo,
             )
         )
