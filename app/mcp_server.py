@@ -7,6 +7,7 @@ from mcp.server.fastmcp.exceptions import ToolError
 from pydantic import BaseModel, Field
 
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
+import app.crawlers.halfords_crawler.halfords_crawler as halfords_crawler
 import app.crawlers.homebase_crawler.homebase_crawler as homebase_crawler
 import app.crawlers.screwfix_crawler as screwfix_crawler
 import app.crawlers.toolstation_crawler as toolstation_crawler
@@ -18,6 +19,7 @@ mcp_logger = get_logger_for_mcp_server("mcp-server")
 
 class Provider(str, Enum):
     DIY_DOT_COM = diy_dot_com_crawler.SOURCE_IDENTIFIER
+    HALFORDS = halfords_crawler.SOURCE_IDENTIFIER
     HOMEBASE = homebase_crawler.SOURCE_IDENTIFIER
     SCREWFIX = screwfix_crawler.SOURCE_IDENTIFIER
     TOOLSTATION = toolstation_crawler.SOURCE_IDENTIFIER
@@ -45,7 +47,7 @@ def hardware_store_staff() -> list[prompts.base.Message]:
 - Consider the user's skill level and safety requirements.
 
 2. PRODUCT RECOMMENDATIONS:
-- Search across B&Q (diy.com), Homebase, Screwfix, Toolstation, and Wickes.
+- Search across B&Q (diy.com), Halfords, Homebase, Screwfix, Toolstation, and Wickes.
 - Provide 2-3 best options that match the customer's needs.
 - Include price comparisons across different stores when available.
 - Always include direct product URLs.
@@ -101,6 +103,10 @@ async def get_providers() -> list[ProviderInfo]:
             description=diy_dot_com_crawler.SOURCE_DESCRIPTION,
         ),
         ProviderInfo(
+            name=halfords_crawler.SOURCE_IDENTIFIER,
+            description=halfords_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
             name=homebase_crawler.SOURCE_IDENTIFIER,
             description=homebase_crawler.SOURCE_DESCRIPTION,
         ),
@@ -127,6 +133,7 @@ class ProductDetailRequest(BaseModel):
 
 ProductDetailResponse = Union[
     diy_dot_com_crawler.ProductDetailResponse,
+    halfords_crawler.ProductDetailResponse,
     homebase_crawler.ProductDetailResponse,
     screwfix_crawler.ProductDetailResponse,
     toolstation_crawler.ProductDetailResponse,
@@ -159,6 +166,8 @@ async def get_product_detail(
     match provider:
         case Provider.DIY_DOT_COM:
             result = await diy_dot_com_crawler.product_detail(request.product_url)
+        case Provider.HALFORDS:
+            result = await halfords_crawler.product_detail(request.product_url)
         case Provider.HOMEBASE:
             result = await homebase_crawler.product_detail(request.product_url)
         case Provider.SCREWFIX:
@@ -182,6 +191,7 @@ class ProductsSearchRequest(BaseModel):
 ProductSearchResponse = list[
     Union[
         diy_dot_com_crawler.ProductSearchResponse,
+        halfords_crawler.ProductSearchResponse,
         homebase_crawler.ProductSearchResponse,
         screwfix_crawler.ProductSearchResponse,
         toolstation_crawler.ProductSearchResponse,
@@ -213,6 +223,8 @@ async def search_products(
     match provider:
         case Provider.DIY_DOT_COM:
             result = await diy_dot_com_crawler.product_search(request.keyword)
+        case Provider.HALFORDS:
+            result = await halfords_crawler.product_search(request.keyword)
         case Provider.HOMEBASE:
             result = await homebase_crawler.product_search(request.keyword)
         case Provider.SCREWFIX:
@@ -225,3 +237,36 @@ async def search_products(
             raise ToolError(f"Provider {provider} is not supported.")
 
     return result
+
+
+class CarPartsSearchRequest(BaseModel):
+    car_plate: str = Field(
+        description="The vehicle registration plate (e.g., 'NX60OLA')."
+    )
+    keyword: str = Field(
+        description="The car part or accessory search term (e.g., 'Engine Oil', 'Brake Pads')."
+    )
+
+
+@mcp.tool(
+    "search_car_parts",
+    title="Search Car Parts by Registration Plate",
+    description="Search for vehicle-compatible car parts on Halfords using a vehicle registration plate and keyword.",
+    annotations={
+        "readOnlyHint": True,
+        "destructiveHint": False,
+        "idempotentHint": False,
+        "openWorldHint": True,
+    },
+)
+async def search_car_parts(
+    request: CarPartsSearchRequest = Field(
+        description="The request containing the vehicle registration plate and keyword."
+    ),
+) -> list[halfords_crawler.ProductSearchResponse]:
+    mcp_logger.info(
+        f"Searching car parts for plate '{request.car_plate}' and keyword '{request.keyword}'"
+    )
+    return await halfords_crawler.car_parts_product_search(
+        request.car_plate, request.keyword
+    )

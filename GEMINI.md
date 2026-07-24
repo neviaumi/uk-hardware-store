@@ -14,6 +14,7 @@ This project STRICTLY adheres to the Spec Driven Development workflow. The Agent
 - **Architectural Boundary Adherence**: Follow the exact folder conventions established for `app/`, `tests/`, and `scripts/`. Do not produce files in arbitrary locations.
 - **Verification-First**: Always verify application behavior immediately after execution via `pytest` and Ruff linting checks.
 - **Environment Execution**: When running shell scripts (like `scripts/test.sh`), you must ensure `~/.local/bin` is in the `PATH` by explicitly executing `source ~/.zshrc` in conjunction with the script (e.g., `source ~/.zshrc && bash ./scripts/test.sh`).
+- **Exact Dependency Pinning**: Always use exact version pinning (`==`) for all dependencies in `pyproject.toml`. Do not use range operators (like `>=` or `~=`).
 
 ## Debugging Protocol
 This project utilizes a dedicated `.debug/` folder at the root for temporary file debugging and execution state analysis.

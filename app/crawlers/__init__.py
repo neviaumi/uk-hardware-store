@@ -1,5 +1,6 @@
 from . import (
     diy_dot_com_crawler,
+    halfords_crawler,
     homebase_crawler,
     screwfix_crawler,
     toolstation_crawler,
@@ -8,6 +9,7 @@ from . import (
 
 __all__ = [
     "diy_dot_com_crawler",
+    "halfords_crawler",
     "wickes_crawler",
     "toolstation_crawler",
     "screwfix_crawler",
