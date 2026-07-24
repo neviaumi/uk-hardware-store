@@ -89,6 +89,11 @@ When a site's data is heavily dependent on JavaScript or protected by sophistica
 - **Wait Strategies**: Avoid hardcoded sleeps. Use `wait_for_selector()` or `wait_for_load_state("networkidle")` with explicit timeouts.
 - **Timeouts**: Define generous timeouts (e.g., 60-90 seconds) for initial page loads to account for solver delays.
 
+### Visual Exploration Requirement
+- **Pre-Implementation Rule**: For browser-based crawlers (client-side rendered / dynamic JS sites), before generating an implementation plan or writing code, you **MUST** visually inspect the target pages using the browser agent (`/browser` command) connected to the local Chrome instance.
+- **System Assumption**: Chrome is installed locally on the system.
+- **Workflow**: Use `/browser` to open the target retailer URL, visually inspect the rendered UI structure, examine dynamic elements, cookie popups, and verify DOM selectors before drafting the implementation plan or generating code.
+
 ---
 
 ## 6. Testing Requirements

@@ -28,6 +28,8 @@ async def mcp_client_session(mcp_server_config):
 
     if "BROWSERLESS_API_KEY" in os.environ:
         env["BROWSERLESS_API_KEY"] = os.environ["BROWSERLESS_API_KEY"]
+    if "BROWSER_PROVIDER" in os.environ:
+        env["BROWSER_PROVIDER"] = os.environ["BROWSER_PROVIDER"]
 
     server_params = StdioServerParameters(
         command=mcp_server_config["test"]["command"],

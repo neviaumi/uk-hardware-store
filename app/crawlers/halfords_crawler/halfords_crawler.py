@@ -4,6 +4,7 @@ import urllib.parse
 from enum import Enum
 from typing import Literal
 
+from parsel import Selector
 from playwright.async_api import Page
 from pydantic import BaseModel, Field
 
@@ -44,6 +45,25 @@ class ProductSearchResponse(BaseModel):
     )
 
 
+class ProductDetailResponse(BaseModel):
+    source: Literal[SOURCE_IDENTIFIER] = Field(
+        description="The source of the product.", default=SOURCE_IDENTIFIER
+    )
+    title: str = Field(description="The full commercial name of the product.")
+    price: str = Field(
+        description="The current retail price, including the currency symbol (e.g., £17.20)."
+    )
+    detail: str = Field(
+        description="Comprehensive technical specifications or item details in HTML or JSON format."
+    )
+    description: str = Field(
+        description="A brief text summary of the product's key details and features."
+    )
+    promo: str | None = Field(
+        description="Any active promotional offers or discounts associated with the product."
+    )
+
+
 async def car_parts_product_search(
     car_plate: str, keyword: str
 ) -> list[ProductSearchResponse]:
@@ -57,6 +77,87 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
     async with create_browser() as browser:
         page = await browser.new_page()
         return await _product_search(page, keyword)
+
+
+async def product_detail(url: str) -> ProductDetailResponse:
+    async with create_browser() as browser:
+        page = await browser.new_page()
+        await page.goto(url, wait_until="networkidle", timeout=_DEFAULT_TIMEOUT)
+        cookie_accept = page.get_by_role("button", name="Accept all", exact=False)
+        if await cookie_accept.count() > 0:
+            await cookie_accept.click()
+
+        html = await page.content()
+        sel = Selector(text=html)
+
+        jdata = {}
+        jtext = sel.css('script[type="application/ld+json"]::text').get()
+        if jtext:
+            try:
+                jdata = json.loads(jtext)
+            except Exception:
+                pass
+
+        title = (
+            jdata.get("name")
+            or sel.css('meta[property="og:title"]::attr(content)').get()
+            or await page.locator("h1").first.inner_text()
+        )
+        if title and " | Halfords UK" in title:
+            title = title.replace(" | Halfords UK", "").strip()
+
+        price = None
+        if isinstance(jdata.get("offers"), dict) and "price" in jdata["offers"]:
+            p_val = jdata["offers"]["price"]
+            currency = "£" if jdata["offers"].get("priceCurrency") == "GBP" else ""
+            price = (
+                f"{currency}{p_val:.2f}"
+                if isinstance(p_val, (int, float))
+                else f"{currency}{p_val}"
+            )
+        if not price:
+            if await page.locator("[data-testid='price']").count() > 0:
+                price = await page.locator("[data-testid='price']").first.inner_text()
+            elif await page.locator(".halfords-basket-price").count() > 0:
+                price = await page.locator(".halfords-basket-price").first.inner_text()
+            else:
+                price = "N/A"
+
+        description = jdata.get("description") or ""
+        acc0_loc = page.locator("[data-testid='accordion-content']").first
+        if await acc0_loc.count() > 0:
+            acc0_text = await acc0_loc.inner_text()
+            if len(acc0_text.strip()) > len(description):
+                description = acc0_text.strip()
+
+        specs_dict = {}
+        spec_rows = sel.xpath('//table[@aria-label="Specifications"]//tr')
+        for tr in spec_rows:
+            label = " ".join(
+                [t.strip() for t in tr.xpath("./th//text()").getall() if t.strip()]
+            )
+            value = " ".join(
+                [t.strip() for t in tr.xpath("./td//text()").getall() if t.strip()]
+            )
+            if label and value:
+                specs_dict[label] = value
+
+        detail = json.dumps(specs_dict, indent=2) if specs_dict else ""
+
+        promo_loc = page.locator(
+            "[data-testid='promotion'], [data-testid='promo-banner']"
+        )
+        promo = (
+            await promo_loc.first.inner_text() if await promo_loc.count() > 0 else None
+        )
+
+        return ProductDetailResponse(
+            title=title or "",
+            price=price,
+            detail=detail,
+            description=description,
+            promo=promo,
+        )
 
 
 async def _setup_car_registration(page: Page, car_plate: str):
@@ -74,15 +175,21 @@ async def _setup_car_registration(page: Page, car_plate: str):
     await page.locator(
         "input[data-testid='vrn_search_form-postcode-autocomplete-inputField']"
     ).press_sequentially(_DEFAULT_POSTCODE, delay=100)
-    await page.screenshot(path="halfords_setup_car_registration_postcode.png")
-    await (
-        page
-        .locator("[data-testid='vrn_search_form-postcode-suggestionBlock']")
+    suggestion = (
+        page.locator("[data-testid='vrn_search_form-postcode-suggestionBlock']")
         .get_by_role("option")
         .filter(has_text=_DEFAULT_POSTCODE)
-        .click(force=True)
     )
-    await page.locator("button[data-testid='vrn_search_form-search-button']").click()
+    if await suggestion.count() > 0:
+        await suggestion.first.evaluate("el => el.click()")
+    else:
+        await (
+            page.locator("[data-testid='vrn_search_form-postcode-suggestionBlock']")
+            .get_by_role("option")
+            .first.evaluate("el => el.click()")
+        )
+    search_btn = page.locator("button[data-testid='vrn_search_form-search-button']")
+    await search_btn.evaluate("el => el.click()")
     await page.wait_for_selector("[data-testid='alert-success']")
 
 
