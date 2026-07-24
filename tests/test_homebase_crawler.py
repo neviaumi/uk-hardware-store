@@ -33,4 +33,4 @@ async def test_product_detail(mock_server):
     # Detail is HTML, check for a common keyword
     assert "hex" in result.detail.lower()
     assert result.source == "Homebase"
-    assert "3 For 2 Ironmongery" in result.promo
+    assert result.promo is not None and "3 For 2 Ironmongery" in result.promo

@@ -1,5 +1,5 @@
 import urllib.parse
-from typing import Literal
+from typing import Final, Literal
 
 from parsel import Selector
 from pydantic import BaseModel, Field
@@ -8,14 +8,14 @@ import app.config as config
 import app.crawlers.http_client as http_client
 from app.crawlers.utils import clean_html, clean_text
 
-SOURCE_IDENTIFIER = "Homebase"
+SOURCE_IDENTIFIER: Final = "Homebase"
 SOURCE_DESCRIPTION = (
     "Homebase offers home enhancement, garden supplies, decorating, and DIY products."
 )
 
 
 class ProductDetailResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Homebase"] = Field(
         description="The source of the product.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(description="The full commercial name of the product.")
@@ -66,7 +66,7 @@ async def product_detail(url: str) -> ProductDetailResponse:
 
 
 class ProductSearchResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Homebase"] = Field(
         description="The source of the search result.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(

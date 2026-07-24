@@ -1,9 +1,10 @@
 from enum import Enum
-from typing import Union
+from typing import Union, cast
 
 import mcp.server.fastmcp.prompts as prompts
 from mcp.server.fastmcp import FastMCP
 from mcp.server.fastmcp.exceptions import ToolError
+from mcp.types import ToolAnnotations
 from pydantic import BaseModel, Field
 
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
@@ -89,12 +90,12 @@ class ProviderInfo(BaseModel):
     "get_providers",
     title="Get Providers",
     description="Get a list of available hardware store providers and descriptions of the products they sell. Use this to determine which provider to query based on what the user is looking for.",
-    annotations={
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": True,
-        "openWorldHint": False,
-    },
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
 )
 async def get_providers() -> list[ProviderInfo]:
     return [
@@ -145,12 +146,12 @@ ProductDetailResponse = Union[
     "get_product_detail",
     title="Get Product Detail",
     description="Fetch comprehensive product details (specifications, description, price) using a store URL from a specific UK hardware retailer.",
-    annotations={
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def get_product_detail(
     provider: Provider = Field(
@@ -204,12 +205,12 @@ ProductSearchResponse = list[
     "search_products",
     title="Search Products",
     description="Search for products on a specific UK hardware retailer's catalog. If you aren't sure which provider to use, check the get_providers tool.",
-    annotations={
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def search_products(
     provider: Provider = Field(
@@ -236,7 +237,7 @@ async def search_products(
         case _:
             raise ToolError(f"Provider {provider} is not supported.")
 
-    return result
+    return cast(ProductSearchResponse, result)
 
 
 class CarPartsSearchRequest(BaseModel):
@@ -252,12 +253,12 @@ class CarPartsSearchRequest(BaseModel):
     "search_car_parts",
     title="Search Car Parts by Registration Plate",
     description="Search for vehicle-compatible car parts on Halfords using a vehicle registration plate and keyword.",
-    annotations={
-        "readOnlyHint": True,
-        "destructiveHint": False,
-        "idempotentHint": False,
-        "openWorldHint": True,
-    },
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
 )
 async def search_car_parts(
     request: CarPartsSearchRequest = Field(

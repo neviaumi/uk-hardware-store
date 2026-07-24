@@ -23,7 +23,7 @@ def clean_text(text: list[str], separator: str = " ") -> str:
     )
 
 
-def remove_spaces(text: str) -> str:
+def remove_spaces(text: str | None) -> str | None:
     if not text:
         return None
     return " ".join(text.split())

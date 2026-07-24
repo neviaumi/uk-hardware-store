@@ -1,5 +1,5 @@
 import urllib.parse
-from typing import Literal
+from typing import Final, Literal
 
 from parsel import Selector
 from pydantic import BaseModel, Field
@@ -8,12 +8,12 @@ import app.config as config
 import app.crawlers.http_client as http_client
 from app.crawlers.utils import clean_html, clean_text, remove_spaces
 
-SOURCE_IDENTIFIER = "Toolstation"
+SOURCE_IDENTIFIER: Final = "Toolstation"
 SOURCE_DESCRIPTION = "Toolstation offers tools, electrical, plumbing, and building supplies for both trade and DIY."
 
 
 class ProductDetailResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Toolstation"] = Field(
         description="The source of the product.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(description="The full commercial name of the product.")
@@ -39,7 +39,7 @@ async def product_detail(url: str) -> ProductDetailResponse:
 
     # Simplified title extraction using <title> tag as requested
     raw_title = selector.css("title::text").get() or ""
-    title = remove_spaces(raw_title.split("|")[0].strip())
+    title = remove_spaces(raw_title.split("|")[0].strip()) or ""
 
     # Price extraction from the prominent blue bold span
     price = selector.css(r".text-blue .font-bold.text-\[28px\]::text").get() or ""
@@ -76,7 +76,7 @@ async def product_detail(url: str) -> ProductDetailResponse:
 
 
 class ProductSearchResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Toolstation"] = Field(
         description="The source of the search result.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(

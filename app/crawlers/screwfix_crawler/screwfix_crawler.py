@@ -1,5 +1,5 @@
 import urllib.parse
-from typing import Literal
+from typing import Final, Literal
 
 from parsel import Selector
 from pydantic import BaseModel, Field
@@ -8,12 +8,12 @@ import app.config as config
 import app.crawlers.http_client as http_client
 from app.crawlers.utils import clean_html, clean_text, remove_spaces
 
-SOURCE_IDENTIFIER = "Screwfix"
+SOURCE_IDENTIFIER: Final = "Screwfix"
 SOURCE_DESCRIPTION = "Screwfix offers trade tools, plumbing, electrical, bathrooms, and heating products."
 
 
 class ProductDetailResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Screwfix"] = Field(
         description="The source of the product.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(description="The full commercial name of the product.")
@@ -49,7 +49,8 @@ async def product_detail(url: str) -> ProductDetailResponse:
     return ProductDetailResponse(
         title=remove_spaces(
             selector.css("[data-qaid='pdp-product-name'] *::text").get() or ""
-        ),
+        )
+        or "",
         price=price,
         description=selector.css("[data-qaid='pdp-product-overview']::text").get()
         or "",
@@ -60,7 +61,7 @@ async def product_detail(url: str) -> ProductDetailResponse:
 
 
 class ProductSearchResponse(BaseModel):
-    source: Literal[SOURCE_IDENTIFIER] = Field(
+    source: Literal["Screwfix"] = Field(
         description="The source of the search result.", default=SOURCE_IDENTIFIER
     )
     title: str = Field(
@@ -107,7 +108,7 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
 
         results.append(
             ProductSearchResponse(
-                title=remove_spaces(title) if title else "",
+                title=remove_spaces(title) or "" if title else "",
                 price=price or "",
                 url=f"{config.SCREWFIX_URL}{product_url}" if product_url else "",
                 promo=promo_message_ctx if promo_message_ctx else bulk_saves_ctx,
