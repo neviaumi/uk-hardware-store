@@ -9,5 +9,5 @@ THE_RANGE_URL = "https://www.therange.co.uk"
 HALFORDS_URL = "https://www.halfords.com"
 BROWSERLESS_ENDPOINT = "wss://browserless.handy-david.dev"
 BROWSERLESS_API_KEY = os.getenv("BROWSERLESS_API_KEY")
-BROWSER_PROVIDER = os.getenv("BROWSER_PROVIDER", "firefox")
+BROWSER_PROVIDER = os.getenv("BROWSER_PROVIDER", "browserless")
 LIGHTPANDA_ENDPOINT = "ws://localhost:9222"
