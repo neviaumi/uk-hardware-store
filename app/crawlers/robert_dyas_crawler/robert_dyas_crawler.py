@@ -27,7 +27,8 @@ class ProductSearchResponse(BaseModel):
         description="The absolute URL leading to the product's detail page."
     )
     promo: str | None = Field(
-        description="Any active promotional offers or discounts associated with the product."
+        description="Any active promotional offers or discounts associated with the product.",
+        default=None,
     )
 
 
