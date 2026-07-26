@@ -112,3 +112,65 @@ async def test_get_providers(mcp_client_session):
         assert "description" in provider_info
         assert len(provider_info["name"]) > 0
         assert len(provider_info["description"]) > 0
+
+
+async def test_robert_dyas_mcp_direct_routing(monkeypatch):
+    """Direct unit test for Robert Dyas MCP tool routing without external network calls."""
+    from unittest.mock import AsyncMock
+
+    import app.crawlers.robert_dyas_crawler as robert_dyas_crawler
+    from app.crawlers.robert_dyas_crawler import (
+        ProductDetailResponse,
+        ProductSearchResponse,
+    )
+    from app.mcp_server import (
+        ProductDetailRequest,
+        ProductsSearchRequest,
+        get_product_detail,
+        get_providers,
+        search_products,
+    )
+
+    # 1. Test get_providers contains Robert Dyas
+    providers = await get_providers()
+    robert_dyas_provider = next(
+        (p for p in providers if p.name == Provider.ROBERT_DYAS.value), None
+    )
+    assert robert_dyas_provider is not None
+    assert "Robert Dyas" in robert_dyas_provider.name
+    assert len(robert_dyas_provider.description) > 0
+
+    # 2. Test search_products routing for Robert Dyas
+    mock_search_result = [
+        ProductSearchResponse(
+            title="Robert Dyas Drill",
+            price="£29.99",
+            url="https://www.robertdyas.co.uk/drill",
+        )
+    ]
+    mock_search = AsyncMock(return_value=mock_search_result)
+    monkeypatch.setattr(robert_dyas_crawler, "product_search", mock_search)
+
+    search_resp = await search_products(
+        provider=Provider.ROBERT_DYAS,
+        request=ProductsSearchRequest(keyword="drill"),
+    )
+    mock_search.assert_called_once_with("drill")
+    assert search_resp == mock_search_result
+
+    # 3. Test get_product_detail routing for Robert Dyas
+    mock_detail_result = ProductDetailResponse(
+        title="Robert Dyas Drill",
+        price="£29.99",
+        detail="A powerful cordless drill",
+        description="Great drill for home DIY projects.",
+    )
+    mock_detail = AsyncMock(return_value=mock_detail_result)
+    monkeypatch.setattr(robert_dyas_crawler, "product_detail", mock_detail)
+
+    detail_resp = await get_product_detail(
+        provider=Provider.ROBERT_DYAS,
+        request=ProductDetailRequest(product_url="https://www.robertdyas.co.uk/drill"),
+    )
+    mock_detail.assert_called_once_with("https://www.robertdyas.co.uk/drill")
+    assert detail_resp == mock_detail_result
