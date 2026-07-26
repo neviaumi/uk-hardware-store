@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
 import app.crawlers.halfords_crawler.halfords_crawler as halfords_crawler
 import app.crawlers.homebase_crawler.homebase_crawler as homebase_crawler
+import app.crawlers.robert_dyas_crawler as robert_dyas_crawler
 import app.crawlers.screwfix_crawler as screwfix_crawler
 import app.crawlers.toolstation_crawler as toolstation_crawler
 import app.crawlers.wickes_crawler as wickes_crawler
@@ -22,6 +23,7 @@ class Provider(str, Enum):
     DIY_DOT_COM = diy_dot_com_crawler.SOURCE_IDENTIFIER
     HALFORDS = halfords_crawler.SOURCE_IDENTIFIER
     HOMEBASE = homebase_crawler.SOURCE_IDENTIFIER
+    ROBERT_DYAS = robert_dyas_crawler.SOURCE_IDENTIFIER
     SCREWFIX = screwfix_crawler.SOURCE_IDENTIFIER
     TOOLSTATION = toolstation_crawler.SOURCE_IDENTIFIER
     WICKES = wickes_crawler.SOURCE_IDENTIFIER
@@ -112,6 +114,10 @@ async def get_providers() -> list[ProviderInfo]:
             description=homebase_crawler.SOURCE_DESCRIPTION,
         ),
         ProviderInfo(
+            name=robert_dyas_crawler.SOURCE_IDENTIFIER,
+            description=robert_dyas_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
             name=screwfix_crawler.SOURCE_IDENTIFIER,
             description=screwfix_crawler.SOURCE_DESCRIPTION,
         ),
@@ -136,6 +142,7 @@ ProductDetailResponse = Union[
     diy_dot_com_crawler.ProductDetailResponse,
     halfords_crawler.ProductDetailResponse,
     homebase_crawler.ProductDetailResponse,
+    robert_dyas_crawler.ProductDetailResponse,
     screwfix_crawler.ProductDetailResponse,
     toolstation_crawler.ProductDetailResponse,
     wickes_crawler.ProductDetailResponse,
@@ -171,6 +178,8 @@ async def get_product_detail(
             result = await halfords_crawler.product_detail(request.product_url)
         case Provider.HOMEBASE:
             result = await homebase_crawler.product_detail(request.product_url)
+        case Provider.ROBERT_DYAS:
+            result = await robert_dyas_crawler.product_detail(request.product_url)
         case Provider.SCREWFIX:
             result = await screwfix_crawler.product_detail(request.product_url)
         case Provider.TOOLSTATION:
@@ -194,6 +203,7 @@ ProductSearchResponse = list[
         diy_dot_com_crawler.ProductSearchResponse,
         halfords_crawler.ProductSearchResponse,
         homebase_crawler.ProductSearchResponse,
+        robert_dyas_crawler.ProductSearchResponse,
         screwfix_crawler.ProductSearchResponse,
         toolstation_crawler.ProductSearchResponse,
         wickes_crawler.ProductSearchResponse,
@@ -228,6 +238,8 @@ async def search_products(
             result = await halfords_crawler.product_search(request.keyword)
         case Provider.HOMEBASE:
             result = await homebase_crawler.product_search(request.keyword)
+        case Provider.ROBERT_DYAS:
+            result = await robert_dyas_crawler.product_search(request.keyword)
         case Provider.SCREWFIX:
             result = await screwfix_crawler.product_search(request.keyword)
         case Provider.TOOLSTATION:
