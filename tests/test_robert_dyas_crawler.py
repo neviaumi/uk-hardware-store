@@ -38,3 +38,26 @@ async def test_robert_dyas_live_search():
     assert first_item.price
     assert first_item.url
     assert first_item.source == "Robert Dyas"
+
+
+async def test_product_detail(mock_server):
+    path = "/robertdyas/vonhaus-cordless-multi-tool-with-carry-case"
+    mock_server.expect_request(path).respond_with_data(
+        mock_response_data("product_detail_robert_dyas.html")
+    )
+    url = mock_server.url_for(path)
+    result = await robert_dyas_crawler.product_detail(url)
+    assert result.title == "Vonhaus Cordless Multi Tool with Carry Case"
+    assert result.price == "£36.99"
+    assert "Vonhaus Cordless Multi Tool with Carry Case" in result.description
+    assert result.source == "Robert Dyas"
+    assert result.promo == "Save £11.00"
+
+
+@skip_if_ci
+async def test_robert_dyas_live_product_detail():
+    url = "https://www.robertdyas.co.uk/vonhaus-cordless-multi-tool-with-carry-case"
+    result = await robert_dyas_crawler.product_detail(url)
+    assert result.title
+    assert result.price
+    assert result.source == "Robert Dyas"
