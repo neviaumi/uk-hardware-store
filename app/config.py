@@ -7,6 +7,7 @@ SCREWFIX_URL = "https://www.screwfix.com"
 TOOLSTATION_URL = "https://www.toolstation.com"
 THE_RANGE_URL = "https://www.therange.co.uk"
 HALFORDS_URL = "https://www.halfords.com"
+ROBERT_DYAS_URL = "https://www.robertdyas.co.uk"
 BROWSERLESS_ENDPOINT = "wss://browserless.handy-david.dev"
 BROWSERLESS_API_KEY = os.getenv("BROWSERLESS_API_KEY")
 BROWSER_PROVIDER = os.getenv("BROWSER_PROVIDER", "browserless")

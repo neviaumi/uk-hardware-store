@@ -53,4 +53,9 @@ def mock_server(httpserver: httpserver.HTTPServer, monkeypatch):
         "THE_RANGE_URL",
         httpserver.url_for("/the-range"),
     )
+    monkeypatch.setattr(
+        config,
+        "ROBERT_DYAS_URL",
+        httpserver.url_for("/robertdyas"),
+    )
     return httpserver
