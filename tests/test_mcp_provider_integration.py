@@ -32,7 +32,8 @@ async def mcp_client_session(mcp_server_config):
         env["BROWSER_PROVIDER"] = os.environ["BROWSER_PROVIDER"]
 
     server_config = (
-        mcp_server_config.get("uk-hardware-store")
+        mcp_server_config.get("uk-hardware-store-test")
+        or mcp_server_config.get("uk-hardware-store")
         or list(mcp_server_config.values())[0]
     )
     if "env" in server_config:
