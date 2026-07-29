@@ -16,12 +16,6 @@ This project STRICTLY adheres to the Spec Driven Development workflow. The Agent
 - **Environment Execution**: When running shell scripts (like `scripts/test.sh`), you must ensure `~/.local/bin` is in the `PATH` by explicitly executing `source ~/.zshrc` in conjunction with the script (e.g., `source ~/.zshrc && bash ./scripts/test.sh`).
 - **Exact Dependency Pinning**: Always use exact version pinning (`==`) for all dependencies in `pyproject.toml`. Do not use range operators (like `>=` or `~=`).
 
-## Debugging Protocol
-This project utilizes a dedicated `.debug/` folder at the root for temporary file debugging and execution state analysis.
-- **Autonomous Analysis**: The agent is authorized to create, read, and delete files within `.debug/` to capture stack traces, variable states, or raw tool outputs.
-- **Overhead Reduction**: The agent should utilize this folder to resolve execution ambiguities independently before querying the user.
-- **Persistence**: Files in `.debug/` are temporary and excluded from version control.
-
 ## Project Architecture
 This repository uses the following directory structure:
 - `app/`: Contains the main application source code, FastAPI entry points, MCP server definitions, and web crawlers.
