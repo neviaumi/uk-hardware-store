@@ -42,7 +42,8 @@ The **UK Hardware Store MCP Server** is a high-performance scraping and integrat
 ├── scripts/                # Life-cycle management scripts
 │   ├── start.sh            # Development and production server start
 │   ├── setup.sh            # Environment initialization
-│   └── test.sh             # Linting and formatting checks
+│   ├── lint.sh             # Linting, formatting, and type checks
+│   └── test.sh             # Pytest test suite runner
 ├── pyproject.toml          # Modern dependency management via uv
 ├── mcp.json                # MCP configuration template
 └── GEMINI.md               # Spec Driven Development workflow documentation
@@ -76,7 +77,7 @@ To use this with an MCP client (like Claude Desktop), add the server to your `mc
 {
   "mcpServers": {
     "uk-hardware-store": {
-      "command": "zsh",
+      "command": "bash",
       "args": ["-c", "cd /path/to/uk-hardware-store-mcp && ./scripts/start.sh --prod"]
     }
   }
@@ -103,12 +104,12 @@ The project adheres to **Spec Driven Development (SDD)**. For more details, see 
 
 Run linting and formatting:
 ```bash
-bash ./scripts/test.sh
+bash ./scripts/lint.sh
 ```
 
 Run the behavioral test suite:
 ```bash
-uv run pytest
+bash ./scripts/test.sh
 ```
 
 ## License

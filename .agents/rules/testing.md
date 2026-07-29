@@ -10,17 +10,17 @@ This document defines the requirements and procedures for all testing activities
 ## 1. General Testing Standards
 
 ### Linting and Formatting
-To maintain code consistency and catch logical errors, use **Ruff**.
+To maintain code consistency and catch logical errors, use **Ruff** and **ty**.
 ```bash
-# Run formatting checks and linting rules
-bash ./scripts/test.sh
+# Run formatting checks, linting rules, and type checking
+bash ./scripts/lint.sh
 ```
 
 ### Behavioral Testing
-The terminal execution of tests is managed via `uv run pytest`.
+The terminal execution of tests is managed via `scripts/test.sh` or `uv run pytest`.
 ```bash
 # Run all unit and integration tests
-uv run pytest
+bash ./scripts/test.sh
 ```
 
 ### Browserless Token Requirement
@@ -77,3 +77,18 @@ If a crawler test fails due to UI drift or missing data:
 1.  Verify the keyword in `tests/crawler.py`.
 2.  Re-run the **Capture Command** mentioned above to refresh the local HTML fixture.
 3.  Update the expected paths in `tests/test_<crawler>_crawler.py` if the site structure has changed.
+
+---
+
+## 4. End-to-End (E2E) MCP Testing Standard
+
+> [!IMPORTANT]
+> **Direct MCP Connection Rule**:
+> For verifying end-to-end MCP server behavior and tools, agents **MUST NOT** write or execute custom scratch verification scripts. 
+> Agents must leverage the direct MCP connection defined in `.agents/mcp_config.json` via the native MCP interface.
+
+### Verification Protocol
+1. **Configuration**: Use `.agents/mcp_config.json` which defines the stdio server entry point.
+2. **Execution Rules**:
+   - **Direct MCP Connection**: Agents must interact directly with the MCP server using the configured MCP connection in `.agents/mcp_config.json` to call and verify tools.
+   - **No Scratch Verification Scripts**: Agents must not generate custom Python test scripts to test MCP tool responses.

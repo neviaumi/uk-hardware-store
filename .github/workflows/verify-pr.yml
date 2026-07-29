@@ -11,7 +11,10 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v6
       - run: bash ./scripts/setup.sh
-      - run: bash ./scripts/test.sh
+      - name: Run lint and format check
+        run: bash ./scripts/lint.sh
+      - name: Run tests
+        run: bash ./scripts/test.sh
 name: Verify PR
 
 on: pull_request
