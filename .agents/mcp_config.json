@@ -7,6 +7,15 @@
         "--stdio"
       ],
       "cwd": "/Users/david/my-apps/uk-hardware-store"
+    },
+    "uk-hardware-store-test": {
+      "command": "bash",
+      "args": [
+        "scripts/start.sh",
+        "--test"
+      ],
+      "cwd": "/Users/david/my-apps/uk-hardware-store"
     }
   }
 }
+
