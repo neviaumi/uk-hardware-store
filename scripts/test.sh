@@ -1,4 +1,4 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
 set -ex
 
@@ -9,7 +9,4 @@ if [ -z "${CI}" ]; then
   export BROWSER_PROVIDER=browserless
 fi
 
-uv run ruff format --check
-uv run ruff check
-uv run ty check
 uv run pytest

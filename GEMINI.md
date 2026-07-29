@@ -16,7 +16,7 @@ This repository uses the following directory structure:
   - `main.py` / `stdio.py`: Application entry points for web server and stdio MCP transport.
 - `specs/`: Feature specifications and task definitions created for Spec Driven Development (SDD).
 - `tests/`: Automated unit and integration test suite (`pytest`), including `mock_server/` HTML snapshots and crawler behavioral tests.
-- `scripts/`: Utility bash scripts for application startup (`start.sh`), testing (`test.sh`), deployment (`deploy.sh`), and environment setup (`setup.sh`).
+- `scripts/`: Utility bash scripts for application startup (`start.sh`), linting (`lint.sh`), testing (`test.sh`), deployment (`deploy.sh`), and environment setup (`setup.sh`).
 - `.agents/`: Repository-specific agent rules and coding guidelines (`rules/crawler.md`, `rules/testing.md`).
 - `Dockerfile` / `docker-compose.yml`: Configurations for containerized deployment and local service execution.
 - `pyproject.toml` / `uv.lock`: Dependency definitions and exact version locks managed by `uv`.

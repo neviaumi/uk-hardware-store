@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "uk-hardware-store": {
-      "command": "zsh",
+      "command": "bash",
       "args": [
         "scripts/start.sh",
         "--stdio"
