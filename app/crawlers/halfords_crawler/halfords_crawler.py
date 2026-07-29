@@ -41,7 +41,8 @@ class ProductSearchResponse(BaseModel):
         description="The absolute URL leading to the product's detail page."
     )
     promo: str | None = Field(
-        description="A brief summary of any active promotion shown in the search snippet."
+        description="A brief summary of any active promotion shown in the search snippet.",
+        default=None,
     )
 
 
@@ -60,7 +61,8 @@ class ProductDetailResponse(BaseModel):
         description="A brief text summary of the product's key details and features."
     )
     promo: str | None = Field(
-        description="Any active promotional offers or discounts associated with the product."
+        description="Any active promotional offers or discounts associated with the product.",
+        default=None,
     )
 
 

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "uk-hardware-store": {
+      "command": "zsh",
+      "args": [
+        "scripts/start.sh",
+        "--stdio"
+      ],
+      "cwd": "/Users/david/my-apps/uk-hardware-store"
+    }
+  }
+}

@@ -11,8 +11,6 @@ from app.config import (
 
 
 def connect_browserless(playwright: Playwright):
-    if BROWSERLESS_API_KEY is None:
-        raise ValueError("BROWSERLESS_API_KEY is not set")
     params = {
         "token": BROWSERLESS_API_KEY,
         "--stealth": "",

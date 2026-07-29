@@ -76,7 +76,7 @@ To use this with an MCP client (like Claude Desktop), add the server to your `mc
 {
   "mcpServers": {
     "uk-hardware-store": {
-      "command": "bash",
+      "command": "zsh",
       "args": ["-c", "cd /path/to/uk-hardware-store-mcp && ./scripts/start.sh --prod"]
     }
   }
