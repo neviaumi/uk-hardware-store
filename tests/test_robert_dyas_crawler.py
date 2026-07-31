@@ -1,7 +1,7 @@
 import pytest
 
 from app.crawlers.robert_dyas_crawler import robert_dyas_crawler
-from tests import skip_if_ci
+from tests import integration_test
 from tests.crawler import TEST_SEARCH_KEYWORD
 from tests.mock_server import mock_response_data
 
@@ -28,7 +28,7 @@ async def test_product_search(mock_server):
     assert first_item.source == "Robert Dyas"
 
 
-@skip_if_ci
+@integration_test
 async def test_robert_dyas_live_search():
     results = await robert_dyas_crawler.product_search(TEST_SEARCH_KEYWORD)
     assert isinstance(results, list)
@@ -54,7 +54,7 @@ async def test_product_detail(mock_server):
     assert result.promo == "Save £11.00"
 
 
-@skip_if_ci
+@integration_test
 async def test_robert_dyas_live_product_detail():
     url = "https://www.robertdyas.co.uk/vonhaus-cordless-multi-tool-with-carry-case"
     result = await robert_dyas_crawler.product_detail(url)

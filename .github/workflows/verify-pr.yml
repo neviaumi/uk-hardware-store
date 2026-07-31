@@ -13,8 +13,8 @@ jobs:
       - run: bash ./scripts/setup.sh
       - name: Run lint and format check
         run: bash ./scripts/lint.sh
-      - name: Run tests
-        run: bash ./scripts/test.sh
+      - name: Run unit tests
+        run: bash ./scripts/tests/unit.sh
 name: Verify PR
 
 on: pull_request

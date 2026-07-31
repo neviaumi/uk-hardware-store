@@ -5,13 +5,13 @@ from app.crawlers.halfords_crawler import (
     product_detail,
     product_search,
 )
-from tests import skip_if_ci
+from tests import integration_test
 from tests.crawler import TEST_SEARCH_CAR_PART, TEST_SEARCH_KEYWORD
 
 pytestmark = pytest.mark.anyio
 
 
-@skip_if_ci
+@integration_test
 async def test_halfords_search():
     results = await product_search(TEST_SEARCH_KEYWORD)
     assert isinstance(results, list)
@@ -22,7 +22,7 @@ async def test_halfords_search():
         assert first.url
 
 
-@skip_if_ci
+@integration_test
 async def test_halfords_car_parts_search():
     results = await car_parts_product_search("NX60OLA", TEST_SEARCH_CAR_PART)
     assert isinstance(results, list)
@@ -33,7 +33,7 @@ async def test_halfords_car_parts_search():
         assert first.url
 
 
-@skip_if_ci
+@integration_test
 async def test_halfords_product_detail():
     url = "https://www.halfords.com/motoring/car-cleaning/car-shampoo/autoglym-polar-wash-2.5l-833845.html"
     result = await product_detail(url)

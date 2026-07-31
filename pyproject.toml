@@ -23,8 +23,11 @@ dev = [
   "ty==0.0.63",
 ]
 
-[tool.pytest]
+[tool.pytest.ini_options]
 addopts = ["--capture=no"]
+markers = [
+  "integration_test: mark test as integration test requiring live connection or browserless",
+]
 
 [tool.uv]
 add-bounds = "exact"
