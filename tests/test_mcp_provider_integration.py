@@ -8,9 +8,9 @@ from mcp.client.stdio import (
     stdio_client,
 )
 
-from app.mcp_server import Provider
+from app.mcp_server import CarPartProvider, Provider
 from tests import integration_test
-from tests.crawler import TEST_SEARCH_KEYWORD
+from tests.crawler import TEST_SEARCH_CAR_PART, TEST_SEARCH_KEYWORD
 
 pytestmark = pytest.mark.anyio
 
@@ -85,6 +85,34 @@ async def test_provider(mcp_client_session, provider):
     assert "title" in response
 
 
+CAR_PART_PROVIDERS_TO_TEST = list(CarPartProvider)
+
+
+@pytest.mark.parametrize("provider", CAR_PART_PROVIDERS_TO_TEST)
+@integration_test
+async def test_car_part_provider(mcp_client_session, provider):
+    """Test search_car_parts tool across all car part providers."""
+    tool_result = await mcp_client_session.call_tool(
+        "search_car_parts",
+        {
+            "request": {
+                "car_plate": "NX60OLA",
+                "keyword": TEST_SEARCH_CAR_PART,
+            },
+            "provider": provider.value,
+        },
+    )
+
+    assert tool_result.isError is False, f"Tool call for {provider} should not error"
+    response = tool_result.structuredContent.get("result", [])
+    assert len(response) > 0, f"Tool call response for {provider} should not be empty"
+
+    for product in response:
+        assert "title" in product
+        assert "price" in product
+        assert "url" in product
+
+
 async def test_unsupported_provider(mcp_client_session):
     tool_result = await mcp_client_session.call_tool(
         "search_products",
@@ -114,6 +142,25 @@ async def test_get_providers(mcp_client_session):
 
     response = tool_result.structuredContent.get("result", [])
     assert len(response) == len(Provider), "get_providers should return all providers"
+
+    for provider_info in response:
+        assert "name" in provider_info
+        assert "description" in provider_info
+        assert len(provider_info["name"]) > 0
+        assert len(provider_info["description"]) > 0
+
+
+async def test_get_car_part_providers(mcp_client_session):
+    """Test the get_car_part_providers tool returns name and description for all car part providers."""
+    tool_result = await mcp_client_session.call_tool("get_car_part_providers", {})
+    assert tool_result.isError is False, (
+        "Tool call for get_car_part_providers should not error"
+    )
+
+    response = tool_result.structuredContent.get("result", [])
+    assert len(response) == len(CarPartProvider), (
+        "get_car_part_providers should return all car part providers"
+    )
 
     for provider_info in response:
         assert "name" in provider_info
