@@ -31,6 +31,11 @@ class Provider(str, Enum):
     WICKES = wickes_crawler.SOURCE_IDENTIFIER
 
 
+class CarPartProvider(str, Enum):
+    EURO_CAR_PARTS = euro_car_parts_crawler.SOURCE_IDENTIFIER
+    HALFORDS = halfords_crawler.SOURCE_IDENTIFIER
+
+
 mcp = FastMCP(
     "Hardware Store",
     streamable_http_path="/",
@@ -134,6 +139,30 @@ async def get_providers() -> list[ProviderInfo]:
         ProviderInfo(
             name=wickes_crawler.SOURCE_IDENTIFIER,
             description=wickes_crawler.SOURCE_DESCRIPTION,
+        ),
+    ]
+
+
+@mcp.tool(
+    "get_car_part_providers",
+    title="Get Car Part Providers",
+    description="Get a list of available car part hardware store providers and descriptions of the products they sell. Use this to determine which provider to query for car parts search.",
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def get_car_part_providers() -> list[ProviderInfo]:
+    return [
+        ProviderInfo(
+            name=euro_car_parts_crawler.SOURCE_IDENTIFIER,
+            description=euro_car_parts_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
+            name=halfords_crawler.SOURCE_IDENTIFIER,
+            description=halfords_crawler.SOURCE_DESCRIPTION,
         ),
     ]
 
@@ -296,21 +325,20 @@ async def search_car_parts(
     request: CarPartsSearchRequest = Field(
         description="The request containing the vehicle registration plate and keyword."
     ),
-    provider: Provider = Field(
-        default=Provider.HALFORDS,
-        description="The UK retailer to search car parts on (Halfords or Euro Car Parts). Defaults to Halfords.",
+    provider: CarPartProvider = Field(
+        description="The UK retailer to search car parts on (Halfords or Euro Car Parts). See get_car_part_providers for options."
     ),
 ) -> CarPartsProductSearchResponse:
     mcp_logger.info(
         f"Searching car parts on {provider} for plate '{request.car_plate}' and keyword '{request.keyword}'"
     )
     match provider:
-        case Provider.HALFORDS:
+        case CarPartProvider.HALFORDS:
             res = await halfords_crawler.car_parts_product_search(
                 request.car_plate, request.keyword
             )
             return cast(CarPartsProductSearchResponse, res)
-        case Provider.EURO_CAR_PARTS:
+        case CarPartProvider.EURO_CAR_PARTS:
             res = await euro_car_parts_crawler.car_parts_product_search(
                 request.car_plate, request.keyword
             )

@@ -37,5 +37,6 @@ Currently, the application includes crawlers for 8 UK retailers (B&Q/DIY.com, Eu
 - 2026-07-31: Marked `product_search` as completed in Acceptance Criteria and Development Plan after task-01 execution. Updated Explore section with empirical findings confirming Euro Car Parts works via `curl_cffi`.
 - 2026-07-31: Implemented `product_detail(url)` in `app/crawlers/euro_car_parts_crawler/euro_car_parts_crawler.py` and exported `ProductDetailResponse` after task-02 execution.
 - 2026-07-31: Implemented `car_parts_product_search(car_plate, keyword)` using GraphQL VRM lookup and HTTP cookie session filtering. Registered `EURO_CAR_PARTS` in `Provider` enum and all MCP server tools in `app/mcp_server.py`. Added mock server fixtures, unit tests, and live integration tests after task-03 execution.
+- 2026-07-31: Added `CarPartProvider` enum and `get_car_part_providers` MCP tool in `app/mcp_server.py`, updated `search_car_parts` parameter `provider` to `CarPartProvider` without a default value, and updated `tests/test_mcp_provider_integration.py` with parameterized car part provider integration tests after task-04 execution.
 
 
