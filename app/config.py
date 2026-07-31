@@ -8,6 +8,7 @@ TOOLSTATION_URL = "https://www.toolstation.com"
 THE_RANGE_URL = "https://www.therange.co.uk"
 HALFORDS_URL = "https://www.halfords.com"
 ROBERT_DYAS_URL = "https://www.robertdyas.co.uk"
+EURO_CAR_PARTS_URL = "https://www.eurocarparts.com"
 BROWSERLESS_ENDPOINT = "wss://browserless.handy-david.dev"
 BROWSER_PROVIDER = os.getenv("BROWSER_PROVIDER", "browserless")
 BROWSERLESS_API_KEY = os.getenv("BROWSERLESS_API_KEY")

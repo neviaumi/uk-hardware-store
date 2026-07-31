@@ -58,4 +58,9 @@ def mock_server(httpserver: httpserver.HTTPServer, monkeypatch):
         "ROBERT_DYAS_URL",
         httpserver.url_for("/robertdyas"),
     )
+    monkeypatch.setattr(
+        config,
+        "EURO_CAR_PARTS_URL",
+        httpserver.url_for("/eurocarparts"),
+    )
     return httpserver
