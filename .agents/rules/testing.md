@@ -16,22 +16,29 @@ To maintain code consistency and catch logical errors, use **Ruff** and **ty**.
 bash ./scripts/lint.sh
 ```
 
-### Behavioral Testing
-The terminal execution of tests is managed via `scripts/test.sh` or `uv run pytest`.
-```bash
-# Run all unit and integration tests
-bash ./scripts/test.sh
-```
+### Behavioral Testing Tiers
+
+Testing is split into three distinct execution tiers:
+
+1. **Unit Testing (`bash ./scripts/tests/unit.sh`)**:
+   - Runs all fast unit tests (excluding tests marked with `@integration_test`).
+   - **Requirement**: Must be executed automatically whenever an agent completes code changes or refactoring.
+
+2. **Integration Testing (`bash ./scripts/tests/integration.sh`)**:
+   - Runs live crawler and browser tests marked with `@integration_test`.
+   - Automatically manages `BROWSERLESS_API_KEY` authentication locally.
+   - **Requirement**: During development, agents should run only specific, targeted integration test cases (e.g., `bash ./scripts/tests/integration.sh tests/test_halfords_crawler.py`). Running all integration tests is time-consuming and must not be triggered automatically unless explicitly requested by the user.
+
+3. **End-to-End (E2E) Testing**:
+   - Direct verification of MCP tools using `.agents/mcp_config.json`.
+   - **Requirement**: Only run when explicitly requested by the user.
 
 ### Browserless Token Requirement
-When running tests that utilize the browser-based stack (e.g., The Range crawler), a valid `BROWSERLESS_API_KEY` must be present in the environment.
+When running integration tests that utilize the browser-based stack, a valid `BROWSERLESS_API_KEY` must be present in the environment.
 
-- **Local Execution**: The `scripts/test.sh` script automatically attempts to fetch the latest token from Google Cloud Secret Manager:
-  ```bash
-  export BROWSERLESS_API_KEY=$(gcloud secrets versions access latest --secret="browserless-token")
-  ```
-- **Manual Execution**: If running `pytest` directly without the script, ensure you have authenticated with `gcloud` and exported the key manually.
-- **CI Execution**: These tests are typically skipped in CI (via `@skip_if_ci`) as they require live external connections and secrets.
+- **Local Execution**: `scripts/tests/integration.sh` automatically fetches the latest token from Google Cloud Secret Manager if `BROWSERLESS_API_KEY` is not set.
+- **Manual Execution**: If running `pytest -m integration_test` directly without the script, ensure you have authenticated with `gcloud` and exported the key manually.
+- **CI Execution**: Integration tests marked `@integration_test` are excluded from CI runs.
 
 ---
 

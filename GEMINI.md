@@ -4,7 +4,7 @@
 - **Mandatory Plan Approval**: The agent cannot execute destructive or constructive changes on the primary codebase without an approved implementation plan.
 - **Architectural Boundary Adherence**: Follow the exact folder conventions established for `app/`, `tests/`, and `scripts/`. Do not produce files in arbitrary locations.
 - **Verification-First**: Always verify application behavior immediately after execution via `pytest` and Ruff linting checks.
-- **Environment Execution**: When running shell scripts (like `scripts/test.sh`), you must ensure `~/.local/bin` is in the `PATH` by explicitly executing `source ~/.zshrc` in conjunction with the script (e.g., `source ~/.zshrc && bash ./scripts/test.sh`).
+- **Environment Execution**: When running shell scripts (like `scripts/tests/unit.sh`), you must ensure `~/.local/bin` is in the `PATH` by explicitly executing `source ~/.zshrc` in conjunction with the script (e.g., `source ~/.zshrc && bash ./scripts/tests/unit.sh`).
 - **Exact Dependency Pinning**: Always use exact version pinning (`==`) for all dependencies in `pyproject.toml`. Do not use range operators (like `>=` or `~=`).
 
 ## Project Architecture
@@ -16,7 +16,7 @@ This repository uses the following directory structure:
   - `main.py` / `stdio.py`: Application entry points for web server and stdio MCP transport.
 - `specs/`: Feature specifications and task definitions created for Spec Driven Development (SDD).
 - `tests/`: Automated unit and integration test suite (`pytest`), including `mock_server/` HTML snapshots and crawler behavioral tests.
-- `scripts/`: Utility bash scripts for application startup (`start.sh`), linting (`lint.sh`), testing (`test.sh`), deployment (`deploy.sh`), and environment setup (`setup.sh`).
+- `scripts/`: Utility bash scripts for application startup (`start.sh`), linting (`lint.sh`), testing (`tests/unit.sh`, `tests/integration.sh`), deployment (`deploy.sh`), and environment setup (`setup.sh`).
 - `.agents/`: Repository-specific agent rules and coding guidelines (`rules/crawler.md`, `rules/testing.md`).
 - `Dockerfile` / `docker-compose.yml`: Configurations for containerized deployment and local service execution.
 - `pyproject.toml` / `uv.lock`: Dependency definitions and exact version locks managed by `uv`.

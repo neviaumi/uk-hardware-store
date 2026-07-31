@@ -9,7 +9,7 @@ from mcp.client.stdio import (
 )
 
 from app.mcp_server import Provider
-from tests import skip_if_ci
+from tests import integration_test
 from tests.crawler import TEST_SEARCH_KEYWORD
 
 pytestmark = pytest.mark.anyio
@@ -56,7 +56,7 @@ PROVIDERS_TO_TEST = list(Provider)
 
 
 @pytest.mark.parametrize("provider", PROVIDERS_TO_TEST)
-@skip_if_ci
+@integration_test
 async def test_provider(mcp_client_session, provider):
     """Test the unified search_products tool across all providers."""
     # Call the search_products tool with the ProductsSearchRequest payload
