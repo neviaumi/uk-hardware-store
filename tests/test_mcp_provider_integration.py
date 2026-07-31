@@ -10,7 +10,11 @@ from mcp.client.stdio import (
 
 from app.mcp_server import CarPartProvider, Provider
 from tests import integration_test
-from tests.crawler import TEST_SEARCH_CAR_PART, TEST_SEARCH_KEYWORD
+from tests.crawler import (
+    TEST_CAR_PLATE,
+    TEST_SEARCH_CAR_PART,
+    TEST_SEARCH_KEYWORD,
+)
 
 pytestmark = pytest.mark.anyio
 
@@ -96,7 +100,7 @@ async def test_car_part_provider(mcp_client_session, provider):
         "search_car_parts",
         {
             "request": {
-                "car_plate": "NX60OLA",
+                "car_plate": TEST_CAR_PLATE,
                 "keyword": TEST_SEARCH_CAR_PART,
             },
             "provider": provider.value,
