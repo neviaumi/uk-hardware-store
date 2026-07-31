@@ -23,6 +23,22 @@ async def test_product_search(mock_server):
     assert first_item.source == "Euro Car Parts"
 
 
+async def test_product_detail(mock_server):
+    mock_server.expect_request("/eurocarparts/p/SEATP9312").respond_with_data(
+        mock_response_data("product_detail_euro_car_parts.html")
+    )
+    url = mock_server.url_for("/eurocarparts/p/SEATP9312")
+    detail = await euro_car_parts_crawler.product_detail(url)
+    assert detail.title == "Sealey Oil Transfer Pump 12V"
+    assert detail.price == "£45.54"
+    assert "Sealey TP9312 Oil or Diesel Transfer Pump" in detail.description
+    assert "Fluid Transfer Pumps" in detail.detail
+
+    assert detail.source == "Euro Car Parts"
+    assert detail.promo is not None
+    assert "SAVE 30%" in detail.promo
+
+
 @integration_test
 async def test_euro_car_parts_live_search():
     results = await euro_car_parts_crawler.product_search(TEST_SEARCH_KEYWORD)
@@ -33,3 +49,14 @@ async def test_euro_car_parts_live_search():
     assert first_item.price
     assert first_item.url
     assert first_item.source == "Euro Car Parts"
+
+
+@integration_test
+async def test_euro_car_parts_live_detail():
+    results = await euro_car_parts_crawler.product_search("oil")
+    assert len(results) > 0
+    first_url = results[0].url
+    detail = await euro_car_parts_crawler.product_detail(first_url)
+    assert detail.title
+    assert detail.price
+    assert detail.source == "Euro Car Parts"
