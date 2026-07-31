@@ -1,0 +1,52 @@
+{
+  "data": {
+    "findByPlateNumber": {
+      "manufacturer": {
+        "id": "TOYOTA",
+        "name": "TOYOTA"
+      },
+      "model": {
+        "id": "Yaris",
+        "name": "Yaris"
+      },
+      "vehicleAttributes": [
+        {
+          "displayValue": "100",
+          "value": "100",
+          "key": "BHP",
+          "displayName": "BHP"
+        },
+        {
+          "displayValue": "Hatchback",
+          "value": "Hatchback",
+          "key": "BodyStyle",
+          "displayName": "BODY"
+        },
+        {
+          "displayValue": "1.3",
+          "value": "1.3",
+          "key": "EngineSizeDescription",
+          "displayName": "Engine Size"
+        },
+        {
+          "displayValue": "Petrol",
+          "value": "Petrol",
+          "key": "Fuel",
+          "displayName": "Fuel"
+        },
+        {
+          "displayValue": "2010",
+          "value": "2010",
+          "key": "VehicleYear",
+          "displayName": "Year"
+        },
+        {
+          "displayValue": "NX60OLA",
+          "value": "NX60OLA",
+          "key": "VRM",
+          "displayName": "VRM"
+        }
+      ]
+    }
+  }
+}

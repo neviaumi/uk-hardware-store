@@ -1,3 +1,4 @@
+import base64
 import html
 import json
 import re
@@ -15,6 +16,28 @@ SOURCE_IDENTIFIER: Final = "Euro Car Parts"
 SOURCE_DESCRIPTION = (
     "Euro Car Parts offers car parts, tools, accessories, lubricants, and hardware."
 )
+_FIND_BY_PLATE_QUERY: Final = """query findByPlateNumber($plateNumber: String!) {
+  findByPlateNumber(plateNumber: $plateNumber) {
+    ... on VehicleInformation {
+      manufacturer {
+        id
+        name
+      }
+      model {
+        id
+        name
+      }
+      vehicleAttributes {
+        displayValue
+        value
+        key
+        source
+        displayName
+        displayType
+      }
+    }
+  }
+}"""
 
 
 class ProductDetailResponse(BaseModel):
@@ -124,14 +147,7 @@ class ProductSearchResponse(BaseModel):
     )
 
 
-async def product_search(keyword: str) -> list[ProductSearchResponse]:
-    encoded_keyword = urllib.parse.quote(keyword)
-    url = f"{config.EURO_CAR_PARTS_URL}/search/{encoded_keyword}"
-
-    async with http_client.create_client() as client:
-        response = await client.get(url)
-
-    text = response.text
+def _parse_search_results(text: str) -> list[ProductSearchResponse]:
     results: list[ProductSearchResponse] = []
     seen_skus: set[str] = set()
 
@@ -196,3 +212,72 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
                 )
 
     return results
+
+
+async def product_search(keyword: str) -> list[ProductSearchResponse]:
+    encoded_keyword = urllib.parse.quote(keyword)
+    url = f"{config.EURO_CAR_PARTS_URL}/search/{encoded_keyword}"
+
+    async with http_client.create_client() as client:
+        response = await client.get(url)
+
+    return _parse_search_results(response.text)
+
+
+async def car_parts_product_search(
+    car_plate: str, keyword: str
+) -> list[ProductSearchResponse]:
+    async with http_client.create_client() as client:
+        gql_url = f"{config.EURO_CAR_PARTS_URL}/api/graphql"
+        gql_payload = {
+            "query": _FIND_BY_PLATE_QUERY,
+            "variables": {"plateNumber": car_plate.strip().upper()},
+        }
+        try:
+            gql_res = await client.post(
+                gql_url,
+                json=gql_payload,
+                headers={"Content-Type": "application/json"},
+            )
+            if gql_res.status_code == 200:
+                data = gql_res.json()
+                v_info = data.get("data", {}).get("findByPlateNumber", {})
+                mfr = v_info.get("manufacturer", {}).get("name", "")
+                model = v_info.get("model", {}).get("name", "")
+                attrs = {}
+                for item in v_info.get("vehicleAttributes", []):
+                    attrs[item.get("key")] = item.get("value")
+
+                engine = (
+                    attrs.get("EngineSizeDescription")
+                    or attrs.get("EngineSize")
+                    or attrs.get("Capacity")
+                    or ""
+                )
+                fuel = attrs.get("Fuel") or attrs.get("FuelType") or ""
+                year = attrs.get("VehicleYear") or attrs.get("Year") or ""
+                plate = attrs.get("VRM") or car_plate.strip().upper()
+
+                vsr_str = f"MA:{mfr},M:{model},E:{engine},F:{fuel},Y:{year},P:{plate}"
+                encoded_vsr = urllib.parse.quote(vsr_str)
+                b64_vsr = base64.b64encode(f"vsr={vsr_str}".encode()).decode()
+
+                parsed_url = urllib.parse.urlparse(config.EURO_CAR_PARTS_URL)
+                domain = parsed_url.netloc or "www.eurocarparts.com"
+
+                client.cookies.set(
+                    "vehicle_search_result_en_gb", encoded_vsr, domain=domain
+                )
+                client.cookies.set(
+                    "cache_key_cookie_en_gb",
+                    urllib.parse.quote(b64_vsr),
+                    domain=domain,
+                )
+        except Exception:
+            pass
+
+        encoded_keyword = urllib.parse.quote(keyword)
+        search_url = f"{config.EURO_CAR_PARTS_URL}/search/{encoded_keyword}"
+        response = await client.get(search_url)
+
+    return _parse_search_results(response.text)
