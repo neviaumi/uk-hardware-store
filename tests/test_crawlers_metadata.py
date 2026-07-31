@@ -1,6 +1,7 @@
 import pytest
 
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
+import app.crawlers.euro_car_parts_crawler as euro_car_parts_crawler
 import app.crawlers.halfords_crawler as halfords_crawler
 import app.crawlers.homebase_crawler as homebase_crawler
 import app.crawlers.robert_dyas_crawler as robert_dyas_crawler
@@ -10,6 +11,7 @@ import app.crawlers.wickes_crawler as wickes_crawler
 
 CRAWLERS = [
     diy_dot_com_crawler,
+    euro_car_parts_crawler,
     halfords_crawler,
     homebase_crawler,
     robert_dyas_crawler,
