@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+export PATH="$HOME/.local/bin:$HOME/.local/google-cloud-sdk/bin:$PATH"
+
 MODE=${1:---dev}
 
 if [ "$MODE" = "--test" ]; then
@@ -20,5 +22,3 @@ else
         exit 1
     fi
 fi
-
-
