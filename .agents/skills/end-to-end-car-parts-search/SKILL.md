@@ -8,7 +8,7 @@ description: >-
 
 Use this skill to perform an end-to-end verification workflow for registration-matched car parts search and product details retrieval across all supported car part providers.
 
-> **CRITICAL DIRECTIVE**: You MUST execute tool calls using the native MCP server connection configured in `.agents/mcp_config.json`. Do NOT create, write, or run custom Python or bash verification scripts to call the tools.
+> **CRITICAL DIRECTIVE**: You MUST execute tool calls using the native MCP server connection configured in `.agents/mcp_config.json` via `call_mcp_tool`. Do NOT write or run any scripts (Python, bash, or scratch files) to call the MCP server under any circumstances. If the MCP server fails to start or an execution error occurs, investigate to find the root cause and report it to the user.
 
 ## Search Parameters & Constants
 - `car_plate`: Use `TEST_CAR_PLATE` (`"NX60OLA"` from `tests/crawler.py`).

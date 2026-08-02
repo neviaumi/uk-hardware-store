@@ -46,8 +46,9 @@ async def test_product_detail(mock_server):
     detail = await euro_car_parts_crawler.product_detail(url)
     assert detail.title == "Sealey Oil Transfer Pump 12V"
     assert detail.price == "£45.54"
-    assert "Sealey TP9312 Oil or Diesel Transfer Pump" in detail.description
-    assert "Fluid Transfer Pumps" in detail.detail
+    assert "extracting engine oil or diesel" in detail.description
+    assert "Robust and compact portable pump" in detail.detail
+    assert "1.2m suction hose" in detail.detail
 
     assert detail.source == "Euro Car Parts"
     assert detail.promo is not None
