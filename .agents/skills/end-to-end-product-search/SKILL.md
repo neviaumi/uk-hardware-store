@@ -8,7 +8,7 @@ description: >-
 
 Use this skill to perform an end-to-end verification workflow for general product search and product details retrieval across all supported UK hardware store providers.
 
-> **CRITICAL DIRECTIVE**: You MUST execute tool calls using the native MCP server connection configured in `.agents/mcp_config.json`. Do NOT create, write, or run custom Python or bash verification scripts to call the tools.
+> **CRITICAL DIRECTIVE**: You MUST execute tool calls using the native MCP server connection configured in `.agents/mcp_config.json` via `call_mcp_tool`. Do NOT write or run any scripts (Python, bash, or scratch files) to call the MCP server under any circumstances. If the MCP server fails to start or an execution error occurs, investigate to find the root cause and report it to the user.
 
 ## Search Parameters & Constants
 - `keyword`: Use `TEST_SEARCH_KEYWORD` (`"M6 Hex Bolt"` from `tests/crawler.py`).

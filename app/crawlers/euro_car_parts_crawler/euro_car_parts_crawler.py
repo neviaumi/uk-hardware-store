@@ -91,15 +91,36 @@ async def product_detail(url: str) -> ProductDetailResponse:
             price = raw_price.strip()
 
     # 3. Description
+    body_sel = selector.css(
+        "[class*='ProductSubInfo_productSubInfoBody'], [data-testid='productDetailsInSubInfo'], [class*='ProductSubInfo']"
+    )
+    lines: list[str] = []
+    for node_text in body_sel.css(
+        "p::text, li::text, div[data-testid='salesTextInSubInfo']::text, [class*='descriptionBulletPoints']::text"
+    ).getall():
+        cleaned = node_text.strip()
+        if (
+            cleaned
+            and cleaned not in lines
+            and cleaned.lower()
+            not in ["product details", "delivery & returns", "reviews"]
+        ):
+            lines.append(cleaned)
+    desc_text = clean_text(lines)
     raw_desc = selector.css("meta[name='description']::attr(content)").get()
-    desc_paras = selector.css(
-        "[class*='ProductSubInfo'] p::text, [class*='ProductSubInfo'] span::text"
-    ).getall()
-    desc_text = clean_text([p.strip() for p in desc_paras if p.strip()])
     description = desc_text if desc_text else (raw_desc.strip() if raw_desc else "")
 
     # 4. Detail
-    detail_raw = selector.css("[class*='ProductSpecification']").get()
+    detail_raw = (
+        selector.css("[class*='ProductSubInfo_productSubInfoBody']").get()
+        or selector.css("[data-testid='productDetailsInSubInfo']").get()
+        or selector.css(
+            "[class*='ProductSpecification'], [class*='Specification']"
+        ).get()
+        or selector.css("[class*='Feature'], [class*='feature']").get()
+        or selector.css("[class*='Description'], [class*='description']").get()
+        or selector.css("[class*='ProductSubInfo']").get()
+    )
     detail = clean_html(detail_raw) if detail_raw else ""
 
     # 5. Promo
