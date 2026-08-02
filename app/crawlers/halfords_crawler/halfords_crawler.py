@@ -10,6 +10,7 @@ from pydantic import BaseModel, Field
 
 import app.config as config
 from app.crawlers.browser import create_browser
+from app.crawlers.utils import clean_html
 from app.logger import get_logger_for_crawler
 
 SOURCE_IDENTIFIER: Final = "Halfords"
@@ -125,26 +126,95 @@ async def product_detail(url: str) -> ProductDetailResponse:
             else:
                 price = "N/A"
 
-        description = jdata.get("description") or ""
-        acc0_loc = page.locator("[data-testid='accordion-content']").first
-        if await acc0_loc.count() > 0:
-            acc0_text = await acc0_loc.inner_text()
-            if len(acc0_text.strip()) > len(description):
-                description = acc0_text.strip()
+        desc_parts = []
+        acc_locs = page.locator(
+            "[data-testid='accordion-content'], [data-testid='product-description'], .b-product-description"
+        )
+        acc_count = await acc_locs.count()
+        if acc_count > 0:
+            for i in range(acc_count):
+                acc_el = acc_locs.nth(i)
+                text = (await acc_el.inner_text()).strip()
+                if text and text not in desc_parts:
+                    desc_parts.append(text)
 
-        specs_dict = {}
-        spec_rows = sel.xpath('//table[@aria-label="Specifications"]//tr')
-        for tr in spec_rows:
-            label = " ".join(
-                [t.strip() for t in tr.xpath("./th//text()").getall() if t.strip()]
-            )
-            value = " ".join(
-                [t.strip() for t in tr.xpath("./td//text()").getall() if t.strip()]
-            )
-            if label and value:
-                specs_dict[label] = value
+        features_loc = page.locator(
+            "[data-testid='features-and-benefits'] li, .b-features-list li"
+        )
+        feat_count = await features_loc.count()
+        if feat_count > 0:
+            bullet_items = []
+            for i in range(feat_count):
+                bullet = (await features_loc.nth(i).inner_text()).strip()
+                if bullet and bullet not in bullet_items:
+                    bullet_items.append(f"• {bullet}")
+            if bullet_items:
+                feat_text = "Features & Benefits:\n" + "\n".join(bullet_items)
+                if feat_text not in desc_parts:
+                    desc_parts.append(feat_text)
 
-        detail = json.dumps(specs_dict, indent=2) if specs_dict else ""
+        desc_text = "\n\n".join(desc_parts).strip()
+        ld_desc = str(jdata.get("description") or "").strip()
+
+        if desc_text:
+            if ld_desc and ld_desc not in desc_text and len(ld_desc) > len(desc_text):
+                description = f"{ld_desc}\n\n{desc_text}"
+            else:
+                description = desc_text
+        else:
+            description = ld_desc
+
+        detail_raw = None
+        table_loc = page.locator(
+            "[data-testid='specification-table'], "
+            "table[data-testid='specification-table'], "
+            "[data-testid='specification-table-wrapper']"
+        )
+        if await table_loc.count() > 0:
+            try:
+                detail_raw = await table_loc.first.evaluate("el => el.outerHTML")
+            except Exception:
+                pass
+
+        if not detail_raw:
+            detail_raw = (
+                sel.css("[data-testid='specification-table-wrapper']").get()
+                or sel.css("[data-testid='specification-table']").get()
+                or sel.xpath(
+                    "//table[@aria-label='Specifications' or contains(@class, 'spec')] "
+                    "| //div[@data-testid='specifications']"
+                ).get()
+            )
+
+        if detail_raw:
+            detail = clean_html(detail_raw) or ""
+        else:
+            specs_dict = {}
+            cell_0s = page.locator(
+                "[data-testid^='specification-cell-'][data-testid$='-0']"
+            )
+            c_count = await cell_0s.count()
+            if c_count > 0:
+                for i in range(c_count):
+                    cell_lbl = cell_0s.nth(i)
+                    testid = await cell_lbl.get_attribute("data-testid")
+                    if testid and testid.startswith("specification-cell-"):
+                        cell_val_id = testid[:-1] + "1"
+                        cell_val = page.locator(f"[data-testid='{cell_val_id}']")
+                        if await cell_val.count() > 0:
+                            lbl = (await cell_lbl.text_content() or "").strip()
+                            val = (await cell_val.text_content() or "").strip()
+                            if lbl and val:
+                                specs_dict[lbl] = val
+
+            sku_val = (
+                jdata.get("sku")
+                or sel.css('[itemprop="sku"]::text, [data-testid="sku"]::text').get()
+            )
+            if sku_val and "SKU" not in specs_dict:
+                specs_dict["SKU"] = str(sku_val).strip()
+
+            detail = json.dumps(specs_dict, indent=2) if specs_dict else ""
 
         promo_loc = page.locator(
             "[data-testid='promotion'], [data-testid='promo-banner']"

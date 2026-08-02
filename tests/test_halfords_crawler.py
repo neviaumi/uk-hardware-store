@@ -35,8 +35,11 @@ async def test_halfords_car_parts_search():
 
 @integration_test
 async def test_halfords_product_detail():
-    url = "https://www.halfords.com/motoring/car-cleaning/car-shampoo/autoglym-polar-wash-2.5l-833845.html"
+    url = "https://www.halfords.com/motoring/car-parts/filtration/oil-filters/m%2Fknecht-oil-filter-501820154-20265420000057.html?isVrnSearch=true"
     result = await product_detail(url)
     assert result.title
     assert result.price
     assert result.source == "Halfords"
+    assert result.description
+    assert result.detail
+    assert len(result.detail) > 0
