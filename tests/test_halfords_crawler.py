@@ -15,22 +15,22 @@ pytestmark = pytest.mark.anyio
 async def test_halfords_search():
     results = await product_search(TEST_SEARCH_KEYWORD)
     assert isinstance(results, list)
-    if results:
-        first = results[0]
-        assert first.title
-        assert first.price
-        assert first.url
+    assert len(results) > 0
+    first = results[0]
+    assert first.title
+    assert first.price
+    assert first.url
 
 
 @integration_test
 async def test_halfords_car_parts_search():
     results = await car_parts_product_search("NX60OLA", TEST_SEARCH_CAR_PART)
     assert isinstance(results, list)
-    if results:
-        first = results[0]
-        assert first.title
-        assert first.price
-        assert first.url
+    assert len(results) > 0
+    first = results[0]
+    assert first.title
+    assert first.price
+    assert first.url
 
 
 @integration_test

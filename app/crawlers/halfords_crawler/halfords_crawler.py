@@ -84,7 +84,7 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
 async def product_detail(url: str) -> ProductDetailResponse:
     async with create_browser() as browser:
         page = await browser.new_page()
-        await page.goto(url, wait_until="networkidle", timeout=_DEFAULT_TIMEOUT)
+        await page.goto(url, wait_until="domcontentloaded", timeout=_DEFAULT_TIMEOUT)
         cookie_accept = page.get_by_role("button", name="Accept all", exact=False)
         if await cookie_accept.count() > 0:
             await cookie_accept.click()
@@ -165,18 +165,21 @@ async def product_detail(url: str) -> ProductDetailResponse:
 async def _setup_car_registration(page: Page, car_plate: str):
     await page.goto(
         f"{config.HALFORDS_URL}/motoring/car-parts",
-        wait_until="networkidle",
+        wait_until="domcontentloaded",
         timeout=_DEFAULT_TIMEOUT,
     )
     cookie_accept = page.get_by_role("button", name="Accept all", exact=False)
     if await cookie_accept.count() > 0:
         await cookie_accept.click()
-    await page.locator("input[data-testid='vrn_search_form-vrn-inputField']").fill(
-        car_plate
-    )
-    await page.locator(
+
+    vrn_input = page.locator("input[data-testid='vrn_search_form-vrn-inputField']")
+    await vrn_input.wait_for(state="visible", timeout=15000)
+    await vrn_input.fill(car_plate)
+
+    postcode_input = page.locator(
         "input[data-testid='vrn_search_form-postcode-autocomplete-inputField']"
-    ).press_sequentially(_DEFAULT_POSTCODE, delay=100)
+    )
+    await postcode_input.press_sequentially(_DEFAULT_POSTCODE, delay=100)
     suggestion = (
         page.locator("[data-testid='vrn_search_form-postcode-suggestionBlock']")
         .get_by_role("option")
@@ -192,18 +195,21 @@ async def _setup_car_registration(page: Page, car_plate: str):
         )
     search_btn = page.locator("button[data-testid='vrn_search_form-search-button']")
     await search_btn.evaluate("el => el.click()")
-    await page.wait_for_selector("[data-testid='alert-success']")
+    try:
+        await page.wait_for_selector("[data-testid='alert-success']", timeout=10000)
+    except Exception:
+        pass
 
 
 async def _product_search(page: Page, keyword: str):
     query = urllib.parse.urlencode({"q": keyword})
     url = f"{config.HALFORDS_URL}/search?{query}"
-    await page.goto(url, wait_until="networkidle", timeout=_DEFAULT_TIMEOUT)
+    await page.goto(url, wait_until="domcontentloaded", timeout=_DEFAULT_TIMEOUT)
     carparts_product_locator = page.locator("[data-cmp-id='productTileContainer']")
     product_locator = page.locator("[data-testid='product-tile']")
     try:
         await carparts_product_locator.or_(product_locator).first.wait_for(
-            state="attached"
+            state="visible", timeout=15000
         )
     except Exception as e:
         logger.error(f"No products found for {keyword}, {e}")
@@ -218,7 +224,6 @@ async def _product_search(page: Page, keyword: str):
 
 async def _parse_car_parts_products(page: Page) -> list[ProductSearchResponse]:
     results = []
-    await page.wait_for_load_state("networkidle")
     products = await page.locator("[data-cmp-id='productTileContainer']").all()
     for product in products:
         json_text = await product.locator("script.js-tile-model").inner_text()
@@ -242,11 +247,14 @@ async def _parse_products(page: Page) -> list[ProductSearchResponse]:
     results = []
     products = await page.locator("[data-testid='product-tile']").all()
     for product in products:
-        title = await product.locator("[data-testid='product-title']").inner_text()
-        price = await product.locator("[data-testid='product-tile-price']").inner_text()
-        url = await product.locator(
-            "[data-testid='halfords-link']"
-        ).first.get_attribute("href")
+        title_loc = product.locator("[data-testid='product-title']")
+        title = await title_loc.inner_text() if await title_loc.count() > 0 else ""
+        price_loc = product.locator("[data-testid='product-tile-price']")
+        price = await price_loc.inner_text() if await price_loc.count() > 0 else ""
+        link_loc = product.locator(
+            "a[href*='/product/'], a[href*='.html'], [data-testid='halfords-link']"
+        ).first
+        url = await link_loc.get_attribute("href") if await link_loc.count() > 0 else ""
         promotion_locator = product.locator("[data-testid='promotion']")
         promo = (
             await promotion_locator.inner_text()
