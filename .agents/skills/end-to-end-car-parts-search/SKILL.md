@@ -8,7 +8,18 @@ description: >-
 
 Use this skill to perform an end-to-end verification workflow for registration-matched car parts search and product details retrieval across all supported car part providers.
 
-> **CRITICAL DIRECTIVE**: You MUST execute tool calls using the native MCP server connection configured in `.agents/mcp_config.json` via `call_mcp_tool`. Do NOT write or run any scripts (Python, bash, or scratch files) to call the MCP server under any circumstances. If the MCP server fails to start or an execution error occurs, investigate to find the root cause and report it to the user.
+> **CRITICAL DIRECTIVE**: You MUST execute tool calls using Antigravity's built-in `call_mcp_tool` to interact with the `uk-hardware-store` MCP server. Do NOT write or run any scripts (Python, bash, or scratch files) to call the MCP server.
+
+## Built-in MCP Invocation Schema (`call_mcp_tool`)
+Always call the built-in `call_mcp_tool` with the following parameter structure:
+- `ServerName`: `"uk-hardware-store"`
+- `ToolName`: The target FastMCP tool (e.g., `"get_car_part_providers"`, `"search_car_parts"`, `"get_product_detail"`)
+- `Arguments`: The JSON object arguments matching the tool schema
+- `toolSummary`: Short description phrase
+- `toolAction`: Short action description phrase
+
+### Valid Car Part Provider Identifiers (`provider`)
+Enum strings recognized by the server: `"Euro Car Parts"`, `"Halfords"`.
 
 ## Search Parameters & Constants
 - `car_plate`: Use `TEST_CAR_PLATE` (`"NX60OLA"` from `tests/crawler.py`).
@@ -17,25 +28,25 @@ Use this skill to perform an end-to-end verification workflow for registration-m
 ## Logic & Execution Workflow
 
 1. **Retrieve Car Part Providers**:
-   - Call the `get_car_part_providers` MCP tool directly to list supported car part providers (`euro_car_parts`, `halfords`).
+   - Call `call_mcp_tool` with `ServerName="uk-hardware-store"`, `ToolName="get_car_part_providers"`, `Arguments={}`.
    - Cache response payload to `.debug/e2e_get_car_part_providers.json`.
 
 2. **Search Car Parts Across Car Part Providers**:
-   - For each provider returned by `get_car_part_providers`:
-     - Call the `search_car_parts` MCP tool with parameters: `provider=<provider_name>` and `request={"car_plate": "NX60OLA", "keyword": "Oil filter"}`.
-     - Cache raw response to `.debug/e2e_car_parts_search_<provider_name>.json`.
+   - For each car part provider (or filtered provider if requested):
+     - Call `call_mcp_tool` with `ServerName="uk-hardware-store"`, `ToolName="search_car_parts"`, and `Arguments={"provider": "<Provider_Name>", "request": {"car_plate": "NX60OLA", "keyword": "Oil filter"}}`.
+     - Cache raw response to `.debug/e2e_car_parts_search_<provider_slug>.json`.
 
 3. **Fetch Product Details**:
    - For each car part provider that returned search results:
      - Extract the `url` from the first returned product item.
-     - Call the `get_product_detail` MCP tool with parameters: `provider=<provider_name>` and `request={"product_url": <extracted_url>}`.
-     - Cache raw response to `.debug/e2e_car_parts_detail_<provider_name>.json`.
+     - Call `call_mcp_tool` with `ServerName="uk-hardware-store"`, `ToolName="get_product_detail"`, and `Arguments={"provider": "<Provider_Name>", "request": {"product_url": "<extracted_url>"}}`.
+     - Cache raw response to `.debug/e2e_car_parts_detail_<provider_slug>.json`.
 
 4. **Summary Reporting**:
-   - After completing all tool executions, output a Markdown summary table displaying all tool calls, target providers, status, and cached file paths:
+   - Output a Markdown summary table displaying all tool calls, target providers, status, and cached file paths:
 
 | Tool Name | Provider | Status | Cache File Path |
 | :--- | :--- | :--- | :--- |
 | `get_car_part_providers` | - | Success | `.debug/e2e_get_car_part_providers.json` |
-| `search_car_parts` | `euro_car_parts` | Success | `.debug/e2e_car_parts_search_euro_car_parts.json` |
-| `get_product_detail` | `euro_car_parts` | Success | `.debug/e2e_car_parts_detail_euro_car_parts.json` |
+| `search_car_parts` | `Euro Car Parts` | Success | `.debug/e2e_car_parts_search_euro_car_parts.json` |
+| `get_product_detail` | `Euro Car Parts` | Success | `.debug/e2e_car_parts_detail_euro_car_parts.json` |
