@@ -142,14 +142,7 @@ async def product_detail(url: str) -> ProductDetailResponse:
     )
 
 
-async def product_search(keyword: str) -> list[ProductSearchResponse]:
-    query = urllib.parse.urlencode({"q": keyword})
-    url = f"{config.GSF_CAR_PARTS_URL}/catalogsearch/result/?{query}"
-
-    async with http_client.create_client() as client:
-        response = await client.get(url)
-
-    text = response.text
+def _parse_search_results(text: str) -> list[ProductSearchResponse]:
     selector = Selector(text=text)
     results: list[ProductSearchResponse] = []
     seen_urls: set[str] = set()
@@ -217,3 +210,25 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
             )
 
     return results
+
+
+async def product_search(keyword: str) -> list[ProductSearchResponse]:
+    query = urllib.parse.urlencode({"q": keyword})
+    url = f"{config.GSF_CAR_PARTS_URL}/catalogsearch/result/?{query}"
+
+    async with http_client.create_client() as client:
+        response = await client.get(url)
+
+    return _parse_search_results(response.text)
+
+
+async def car_parts_product_search(
+    car_plate: str, keyword: str
+) -> list[ProductSearchResponse]:
+    query = urllib.parse.urlencode({"q": keyword, "vrm": car_plate.strip().upper()})
+    url = f"{config.GSF_CAR_PARTS_URL}/catalogsearch/result/?{query}"
+
+    async with http_client.create_client() as client:
+        response = await client.get(url)
+
+    return _parse_search_results(response.text)

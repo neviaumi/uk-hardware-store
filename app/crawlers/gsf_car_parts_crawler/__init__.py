@@ -3,6 +3,7 @@ from .gsf_car_parts_crawler import (
     SOURCE_IDENTIFIER,
     ProductDetailResponse,
     ProductSearchResponse,
+    car_parts_product_search,
     product_detail,
     product_search,
 )
@@ -12,6 +13,7 @@ __all__ = [
     "SOURCE_DESCRIPTION",
     "ProductDetailResponse",
     "ProductSearchResponse",
+    "car_parts_product_search",
     "product_detail",
     "product_search",
 ]
