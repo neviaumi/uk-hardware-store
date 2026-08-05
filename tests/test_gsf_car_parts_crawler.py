@@ -32,3 +32,4 @@ async def test_product_detail(mock_server):
     assert "Autoglym Interior Kit" in result.title
     assert result.price.startswith("£")
     assert result.description != ""
+    assert result.detail != ""
