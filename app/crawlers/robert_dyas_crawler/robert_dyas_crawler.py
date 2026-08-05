@@ -58,7 +58,7 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
     query = urllib.parse.urlencode({"q": keyword})
     url = f"{config.ROBERT_DYAS_URL}/catalogsearch/result/?{query}"
 
-    async with http_client.create_client() as client:
+    async with http_client.create_client(impersonate="chrome120") as client:
         response = await client.get(url)
 
     selector = Selector(text=response.text)
@@ -115,7 +115,7 @@ async def product_detail(product_id_or_url: str) -> ProductDetailResponse:
     else:
         url = f"{config.ROBERT_DYAS_URL}/{product_id_or_url}"
 
-    async with http_client.create_client() as client:
+    async with http_client.create_client(impersonate="chrome120") as client:
         response = await client.get(url)
 
     selector = Selector(text=response.text)

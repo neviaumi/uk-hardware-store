@@ -1,3 +1,4 @@
+import asyncio
 import html
 import json
 import re
@@ -56,9 +57,21 @@ class ProductSearchResponse(BaseModel):
     )
 
 
-async def product_detail(url: str) -> ProductDetailResponse:
-    async with http_client.create_client() as client:
+async def _fetch_with_retry(url: str, retries: int = 2):
+    async with http_client.create_client(impersonate="chrome120") as client:
         response = await client.get(url)
+        if response.status_code == 200:
+            return response
+        for attempt in range(retries):
+            await asyncio.sleep(0.5)
+            response = await client.get(url)
+            if response.status_code == 200:
+                return response
+        return response
+
+
+async def product_detail(url: str) -> ProductDetailResponse:
+    response = await _fetch_with_retry(url)
 
     text = response.text
     selector = Selector(text=text)
@@ -216,10 +229,16 @@ async def product_search(keyword: str) -> list[ProductSearchResponse]:
     query = urllib.parse.urlencode({"q": keyword})
     url = f"{config.GSF_CAR_PARTS_URL}/catalogsearch/result/?{query}"
 
-    async with http_client.create_client() as client:
-        response = await client.get(url)
+    response = await _fetch_with_retry(url)
 
-    return _parse_search_results(response.text)
+    results = _parse_search_results(response.text)
+    if not results and " " in keyword:
+        for word in reversed(keyword.split()):
+            if len(word) > 2:
+                results = await product_search(word)
+                if results:
+                    break
+    return results
 
 
 async def car_parts_product_search(
@@ -228,7 +247,6 @@ async def car_parts_product_search(
     query = urllib.parse.urlencode({"q": keyword, "vrm": car_plate.strip().upper()})
     url = f"{config.GSF_CAR_PARTS_URL}/catalogsearch/result/?{query}"
 
-    async with http_client.create_client() as client:
-        response = await client.get(url)
+    response = await _fetch_with_retry(url)
 
     return _parse_search_results(response.text)

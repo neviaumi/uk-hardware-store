@@ -296,8 +296,16 @@ async def _parse_car_parts_products(page: Page) -> list[ProductSearchResponse]:
     results = []
     products = await page.locator("[data-cmp-id='productTileContainer']").all()
     for product in products:
-        json_text = await product.locator("script.js-tile-model").inner_text()
-        product_data = json.loads(json_text).get("product", {})
+        tile_script = product.locator("script.js-tile-model")
+        if await tile_script.count() == 0:
+            continue
+        json_text = (await tile_script.inner_text()).strip()
+        if not json_text:
+            continue
+        try:
+            product_data = json.loads(json_text).get("product", {})
+        except Exception:
+            continue
         title = product_data.get("productName")
         price = product_data.get("price", {}).get("sales", {}).get("formatted")
         url = product_data.get("cleanProductUrl")

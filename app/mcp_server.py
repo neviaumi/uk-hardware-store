@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 
 import app.crawlers.diy_dot_com_crawler as diy_dot_com_crawler
 import app.crawlers.euro_car_parts_crawler as euro_car_parts_crawler
+import app.crawlers.gsf_car_parts_crawler as gsf_car_parts_crawler
 import app.crawlers.halfords_crawler.halfords_crawler as halfords_crawler
 import app.crawlers.homebase_crawler.homebase_crawler as homebase_crawler
 import app.crawlers.robert_dyas_crawler as robert_dyas_crawler
@@ -23,6 +24,7 @@ mcp_logger = get_logger_for_mcp_server("mcp-server")
 class Provider(str, Enum):
     DIY_DOT_COM = diy_dot_com_crawler.SOURCE_IDENTIFIER
     EURO_CAR_PARTS = euro_car_parts_crawler.SOURCE_IDENTIFIER
+    GSF_CAR_PARTS = gsf_car_parts_crawler.SOURCE_IDENTIFIER
     HALFORDS = halfords_crawler.SOURCE_IDENTIFIER
     HOMEBASE = homebase_crawler.SOURCE_IDENTIFIER
     ROBERT_DYAS = robert_dyas_crawler.SOURCE_IDENTIFIER
@@ -33,6 +35,7 @@ class Provider(str, Enum):
 
 class CarPartProvider(str, Enum):
     EURO_CAR_PARTS = euro_car_parts_crawler.SOURCE_IDENTIFIER
+    GSF_CAR_PARTS = gsf_car_parts_crawler.SOURCE_IDENTIFIER
     HALFORDS = halfords_crawler.SOURCE_IDENTIFIER
 
 
@@ -57,7 +60,7 @@ def hardware_store_staff() -> list[prompts.base.Message]:
 - Consider the user's skill level and safety requirements.
 
 2. PRODUCT RECOMMENDATIONS:
-- Search across B&Q (diy.com), Euro Car Parts, Halfords, Homebase, Screwfix, Toolstation, and Wickes.
+- Search across B&Q (diy.com), Euro Car Parts, GSF Car Parts, Halfords, Homebase, Screwfix, Toolstation, and Wickes.
 - Provide 2-3 best options that match the customer's needs.
 - Include price comparisons across different stores when available.
 - Always include direct product URLs.
@@ -117,6 +120,10 @@ async def get_providers() -> list[ProviderInfo]:
             description=euro_car_parts_crawler.SOURCE_DESCRIPTION,
         ),
         ProviderInfo(
+            name=gsf_car_parts_crawler.SOURCE_IDENTIFIER,
+            description=gsf_car_parts_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
             name=halfords_crawler.SOURCE_IDENTIFIER,
             description=halfords_crawler.SOURCE_DESCRIPTION,
         ),
@@ -161,6 +168,10 @@ async def get_car_part_providers() -> list[ProviderInfo]:
             description=euro_car_parts_crawler.SOURCE_DESCRIPTION,
         ),
         ProviderInfo(
+            name=gsf_car_parts_crawler.SOURCE_IDENTIFIER,
+            description=gsf_car_parts_crawler.SOURCE_DESCRIPTION,
+        ),
+        ProviderInfo(
             name=halfords_crawler.SOURCE_IDENTIFIER,
             description=halfords_crawler.SOURCE_DESCRIPTION,
         ),
@@ -176,6 +187,7 @@ class ProductDetailRequest(BaseModel):
 ProductDetailResponse = Union[
     diy_dot_com_crawler.ProductDetailResponse,
     euro_car_parts_crawler.ProductDetailResponse,
+    gsf_car_parts_crawler.ProductDetailResponse,
     halfords_crawler.ProductDetailResponse,
     homebase_crawler.ProductDetailResponse,
     robert_dyas_crawler.ProductDetailResponse,
@@ -212,6 +224,8 @@ async def get_product_detail(
             result = await diy_dot_com_crawler.product_detail(request.product_url)
         case Provider.EURO_CAR_PARTS:
             result = await euro_car_parts_crawler.product_detail(request.product_url)
+        case Provider.GSF_CAR_PARTS:
+            result = await gsf_car_parts_crawler.product_detail(request.product_url)
         case Provider.HALFORDS:
             result = await halfords_crawler.product_detail(request.product_url)
         case Provider.HOMEBASE:
@@ -240,6 +254,7 @@ ProductSearchResponse = list[
     Union[
         diy_dot_com_crawler.ProductSearchResponse,
         euro_car_parts_crawler.ProductSearchResponse,
+        gsf_car_parts_crawler.ProductSearchResponse,
         halfords_crawler.ProductSearchResponse,
         homebase_crawler.ProductSearchResponse,
         robert_dyas_crawler.ProductSearchResponse,
@@ -275,6 +290,8 @@ async def search_products(
             result = await diy_dot_com_crawler.product_search(request.keyword)
         case Provider.EURO_CAR_PARTS:
             result = await euro_car_parts_crawler.product_search(request.keyword)
+        case Provider.GSF_CAR_PARTS:
+            result = await gsf_car_parts_crawler.product_search(request.keyword)
         case Provider.HALFORDS:
             result = await halfords_crawler.product_search(request.keyword)
         case Provider.HOMEBASE:
@@ -306,6 +323,7 @@ CarPartsProductSearchResponse = list[
     Union[
         halfords_crawler.ProductSearchResponse,
         euro_car_parts_crawler.ProductSearchResponse,
+        gsf_car_parts_crawler.ProductSearchResponse,
     ]
 ]
 
@@ -313,7 +331,7 @@ CarPartsProductSearchResponse = list[
 @mcp.tool(
     "search_car_parts",
     title="Search Car Parts by Registration Plate",
-    description="Search for vehicle-compatible car parts on supported retailers (Halfords or Euro Car Parts) using a vehicle registration plate and keyword.",
+    description="Search for vehicle-compatible car parts on supported retailers (GSF Car Parts, Halfords, or Euro Car Parts) using a vehicle registration plate and keyword.",
     annotations=ToolAnnotations(
         readOnlyHint=True,
         destructiveHint=False,
@@ -326,7 +344,7 @@ async def search_car_parts(
         description="The request containing the vehicle registration plate and keyword."
     ),
     provider: CarPartProvider = Field(
-        description="The UK retailer to search car parts on (Halfords or Euro Car Parts). See get_car_part_providers for options."
+        description="The UK retailer to search car parts on (GSF Car Parts, Halfords, or Euro Car Parts). See get_car_part_providers for options."
     ),
 ) -> CarPartsProductSearchResponse:
     mcp_logger.info(
@@ -340,6 +358,11 @@ async def search_car_parts(
             return cast(CarPartsProductSearchResponse, res)
         case CarPartProvider.EURO_CAR_PARTS:
             res = await euro_car_parts_crawler.car_parts_product_search(
+                request.car_plate, request.keyword
+            )
+            return cast(CarPartsProductSearchResponse, res)
+        case CarPartProvider.GSF_CAR_PARTS:
+            res = await gsf_car_parts_crawler.car_parts_product_search(
                 request.car_plate, request.keyword
             )
             return cast(CarPartsProductSearchResponse, res)

@@ -116,6 +116,15 @@ async def test_car_part_provider(mcp_client_session, provider):
         assert "price" in product
         assert "url" in product
 
+    first_product = response[0]
+    tool_result = await mcp_client_session.call_tool(
+        "get_product_detail",
+        {"request": {"product_url": first_product["url"]}, "provider": provider.value},
+    )
+    assert tool_result.isError is False, f"Tool call for {provider} should not error"
+    response = tool_result.structuredContent.get("result", {})
+    assert "title" in response
+
 
 async def test_unsupported_provider(mcp_client_session):
     tool_result = await mcp_client_session.call_tool(

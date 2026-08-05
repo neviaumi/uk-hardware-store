@@ -28,6 +28,7 @@ Testing is split into three distinct execution tiers:
    - Runs live crawler and browser tests marked with `@integration_test`.
    - Automatically manages `BROWSERLESS_API_KEY` authentication locally.
    - **Requirement**: During development, agents should run only specific, targeted integration test cases (e.g., `bash ./scripts/tests/integration.sh tests/test_halfords_crawler.py`). Running all integration tests is time-consuming and must not be triggered automatically unless explicitly requested by the user.
+   - **Targeting Specific Providers**: Pass the `-k` filter to target specific providers in parameterized integration tests (e.g., `bash ./scripts/tests/integration.sh tests/test_mcp_provider_integration.py -k "GSF"`, `... -k "Halfords"`, or `... -k "Euro"`).
 
 3. **End-to-End (E2E) Testing**:
    - Direct verification of MCP tools using `.agents/mcp_config.json`.
